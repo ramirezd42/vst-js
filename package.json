@@ -1,0 +1,17 @@
+{
+  "name": "vst-js",
+  "version": "0.0.0",
+  "description": "",
+  "main": "vst-js.js",
+  "scripts": {
+    "start": "node vst-js.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild"
+  },
+  "author": "Dave Ramirez <ramirezd42@gmail.com>",
+  "license": "ISC",
+  "gypfile": true,
+  "dependencies": {
+    "nan": "^2.4.0"
+  }
+}
