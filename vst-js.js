@@ -5,4 +5,4 @@ try {
   vstjs = require('./build/Debug/vst-js.node');
 }
 
-vstjs.listPlugins(r => console.log(r))
+vstjs.listPlugins("/Library/Audio/Plug-Ins/VST3", r => console.log(r))

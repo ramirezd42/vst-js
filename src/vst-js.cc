@@ -3,31 +3,43 @@
 #include "vst-example/HostStartup.h"
 #include <nan.h>
 
-// START OF MY GARBAGE
-static juce::JUCEApplicationBase *juce_CreateApplication() {
-  return new PluginHostApp();
+using namespace juce;
+
+namespace vstjs {
+
+ScopedPointer<KnownPluginList> FetchPlugins(String pluginPath) {
+  AudioPluginFormatManager formatManager;
+  formatManager.addDefaultFormats();
+  formatManager.addFormat (new InternalPluginFormat());
+
+  VST3PluginFormat pluginFormat;
+  FileSearchPath pluginSearchPath(pluginPath);
+  ScopedPointer<KnownPluginList> pluginList = new KnownPluginList();
+  File deadMansFile;
+
+  PluginDirectoryScanner directoryScanner(*pluginList, pluginFormat, pluginSearchPath, true, deadMansFile);
+  String nameOfPluginBeingScanned;
+  while(directoryScanner.scanNextFile(true, nameOfPluginBeingScanned)) {}
+  return pluginList;
 }
 
-// END OF MY GARBAGE
-// static void launchHost() {
-//   juce::JUCEApplicationBase::createInstance = &juce_CreateApplication;
-//   juce::JUCEApplicationBase::main(0, NULL);
-// }
-//
-// void Method(const FunctionCallbackInfo<Value> &args) {
-//   launchHost();
-//   Isolate *isolate = args.GetIsolate();
-//   args.GetReturnValue().Set(v8::String::NewFromUtf8(isolate, "world"));
-// }
-//
-// void init(Local<Object> exports) { NODE_SET_METHOD(exports, "hello", Method);
-// }
-//
-
 void ListPlugins(const Nan::FunctionCallbackInfo<v8::Value> &info) {
-  v8::Local<v8::Function> cb = info[0].As<v8::Function>();
+
+  if (info.Length() < 2) {
+    Nan::ThrowTypeError("Wrong number of arguments");
+  }
+
+  if(!info[0]->IsString() || !info[1]->IsFunction()) {
+    Nan::ThrowTypeError("Wrong argument type(s)");
+  }
+
+  v8::String::Utf8Value searchArg(info[0]->ToString());
+  const char* searchPath = *searchArg;
+
+  v8::Local<v8::Function> cb = info[1].As<v8::Function>();
   const unsigned argc = 1;
-  v8::Local<v8::Value> argv[argc] = {Nan::New("hello world").ToLocalChecked()};
+  ScopedPointer<KnownPluginList> pluginList = FetchPlugins(searchPath);
+  v8::Local<v8::Value> argv[argc] = {Nan::New(pluginList->getNumTypes())};
   Nan::MakeCallback(Nan::GetCurrentContext()->Global(), cb, argc, argv);
 }
 
@@ -37,3 +49,4 @@ void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 }
 
 NODE_MODULE(addon, Init)
+}
