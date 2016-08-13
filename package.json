@@ -4,7 +4,8 @@
   "description": "",
   "main": "vst-js.js",
   "scripts": {
-    "start": "node vst-js.js",
+    "rebuild": "node-gyp rebuild --debug",
+    "start": "node-gyp build --debug && node vst-js.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install": "node-gyp rebuild"
   },
