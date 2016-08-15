@@ -39,7 +39,24 @@ void ListPlugins(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   v8::Local<v8::Function> cb = info[1].As<v8::Function>();
   const unsigned argc = 1;
   ScopedPointer<KnownPluginList> pluginList = FetchPlugins(searchPath);
-  v8::Local<v8::Value> argv[argc] = {Nan::New(pluginList->getNumTypes())};
+  ScopedPointer<KnownPluginList::PluginTree> pluginTree =  pluginList->createTree(KnownPluginList::sortAlphabetically);
+  Array<const PluginDescription*> pluginDescripions =  pluginTree->plugins;
+
+  v8::Local<v8::Array> pluginArr = v8::Array::New(Nan::GetCurrentContext()->GetIsolate(), pluginDescripions.size());
+  for(int i=0; i< pluginDescripions.size(); i++) {
+    v8::Local<v8::Object> plugin = Nan::New<v8::Object>();
+    plugin->Set(Nan::New("name").ToLocalChecked(), Nan::New(pluginDescripions[i]->name.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("descriptiveName").ToLocalChecked(), Nan::New(pluginDescripions[i]->descriptiveName.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("pluginFormatName").ToLocalChecked(), Nan::New(pluginDescripions[i]->pluginFormatName.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("category").ToLocalChecked(), Nan::New(pluginDescripions[i]->category.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("manufacturerName").ToLocalChecked(), Nan::New(pluginDescripions[i]->manufacturerName.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("version").ToLocalChecked(), Nan::New(pluginDescripions[i]->version.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("fileOrIdentifier").ToLocalChecked(), Nan::New(pluginDescripions[i]->fileOrIdentifier.toStdString()).ToLocalChecked());
+    plugin->Set(Nan::New("identifierString").ToLocalChecked(), Nan::New(pluginDescripions[i]->createIdentifierString().toStdString()).ToLocalChecked());
+    pluginArr->Set(i, plugin);
+  }
+
+  v8::Local<v8::Value> argv[argc] = { pluginArr };
   Nan::MakeCallback(Nan::GetCurrentContext()->Global(), cb, argc, argv);
 }
 
