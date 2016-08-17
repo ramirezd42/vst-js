@@ -10,6 +10,7 @@
       ],
       "sources": [
         "src/vst-js.cc",
+        "src/PluginInstance.cc",
         "src/JuceLibraryCode/juce_audio_basics.mm",
         "src/JuceLibraryCode/juce_audio_devices.mm",
         "src/JuceLibraryCode/juce_audio_processors.mm",
@@ -22,12 +23,7 @@
         "src/JuceLibraryCode/juce_gui_basics.mm",
         "src/JuceLibraryCode/juce_gui_extra.mm",
         "src/JuceLibraryCode/juce_opengl.mm",
-        "src/JuceLibraryCode/juce_video.mm",
-        "src/vst-example/FilterGraph.cpp",
-        "src/vst-example/GraphEditorPanel.cpp",
-        "src/vst-example/InternalFilters.cpp",
-        "src/vst-example/MainHostWindow.cpp",
-        "src/vst-example/HostStartup.cpp"
+        "src/JuceLibraryCode/juce_video.mm"
       ],
       "conditions": [[
         'OS=="mac"',
