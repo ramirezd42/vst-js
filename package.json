@@ -4,7 +4,7 @@
   "description": "",
   "main": "vst-js.js",
   "scripts": {
-    "rebuild": "node-gyp rebuild --debug",
+    "rebuild": "node-gyp rebuild --debug; node-gyp configure -- -f xcode",
     "start": "node-gyp build --debug && node vst-js.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install": "node-gyp rebuild"
