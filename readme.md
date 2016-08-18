@@ -1,6 +1,6 @@
 # vst.js
 ## What Is It?
-**vst.js** is a small native node addon that allows for instantiation of natively installed **VST3** audio plugins for use with audio processing applications written for NodeJS. In it's current form it is essentially a wrapper of a handful of [JUCE](juce.com) classes.
+**vst.js** is a small native node addon that allows for instantiation of natively installed **VST3** audio plugins for use with audio processing applications written for NodeJS. In it's current form it is essentially a wrapper of a handful of [JUCE](http://juce.com) classes.
 
 ## WARNING
 This library is in an extremely experimental state. Large portions of functionally have yet to be implemented and is currently only buildable for OSX devices.
