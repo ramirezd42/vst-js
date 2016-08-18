@@ -15,15 +15,18 @@ public:
     constructor().Reset(tpl->GetFunction());
   }
 
-  static v8::Local<v8::Object> NewInstance(v8::Local<v8::Value> arg) {
+  static v8::Local<v8::Object> NewInstance(juce::PluginDescription* plugin) {
     Nan::EscapableHandleScope scope;
 
-    const unsigned argc = 1;
-    v8::Local<v8::Value> argv[argc] = { arg };
     v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor());
-    v8::Local<v8::Object> instance = cons->NewInstance(argc, argv);
+    v8::Local<v8::Object> instance = cons->NewInstance();
 
+    instance->SetAlignedPointerInInternalField(0, plugin);
     return scope.Escape(instance);
+  }
+
+  void setDescription(juce::PluginDescription* _desc) {
+    this->desc = _desc;
   }
 
 protected:
@@ -38,12 +41,14 @@ private:
     info.GetReturnValue().Set(info.This());
   }
   static NAN_METHOD(GetName) {
-    info.GetReturnValue().Set(Nan::New("no-name").ToLocalChecked());
+    juce::PluginDescription* p = static_cast<juce::PluginDescription *> (info.This()->GetAlignedPointerFromInternalField(0));
+    info.GetReturnValue().Set(Nan::New(p->name.toStdString()).ToLocalChecked());
   }
   static inline Nan::Persistent<v8::Function> & constructor() {
     static Nan::Persistent<v8::Function> my_constructor;
     return my_constructor;
   }
+  juce::PluginDescription* desc;
 };
 
 class PluginList : public Nan::ObjectWrap {
@@ -128,7 +133,7 @@ private:
 
     v8::Local<v8::Array> pluginArr = v8::Array::New(Nan::GetCurrentContext()->GetIsolate(), pluginDescriptions.size());
     for(int i=0; i< pluginDescriptions.size(); i++) {
-      v8::Local<v8::Object> descObj = PluginDescription::NewInstance(Nan::New("test").ToLocalChecked());
+      v8::Local<v8::Object> descObj = PluginDescription::NewInstance(const_cast<juce::PluginDescription *> (pluginDescriptions[i]));
 //      v8::Local<v8::Object> plugin = Nan::New<v8::Object>();
 //      plugin->Set(Nan::New("name").ToLocalChecked(), Nan::New(pluginDescriptions[i]->name.toStdString()).ToLocalChecked());
 //      plugin->Set(Nan::New("descriptiveName").ToLocalChecked(), Nan::New(pluginDescriptions[i]->descriptiveName.toStdString()).ToLocalChecked());
