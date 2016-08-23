@@ -4,26 +4,26 @@
       "target_name": "vst-js",
       "include_dirs": [
         "src",
+        "shared",
         "include/JUCE/modules",
         "include/VST3",
         "<!(node -e \"require('nan')\")"
       ],
       "sources": [
         "src/vst-js.cc",
-        "src/PluginInstance.cc",
-        "src/JuceLibraryCode/juce_audio_basics.mm",
-        "src/JuceLibraryCode/juce_audio_devices.mm",
-        "src/JuceLibraryCode/juce_audio_processors.mm",
-        "src/JuceLibraryCode/juce_audio_utils.mm",
-        "src/JuceLibraryCode/juce_core.mm",
-        "src/JuceLibraryCode/juce_cryptography.mm",
-        "src/JuceLibraryCode/juce_data_structures.mm",
-        "src/JuceLibraryCode/juce_events.mm",
-        "src/JuceLibraryCode/juce_graphics.mm",
-        "src/JuceLibraryCode/juce_gui_basics.mm",
-        "src/JuceLibraryCode/juce_gui_extra.mm",
-        "src/JuceLibraryCode/juce_opengl.mm",
-        "src/JuceLibraryCode/juce_video.mm"
+        "shared/JuceLibraryCode/juce_audio_basics.mm",
+        "shared/JuceLibraryCode/juce_audio_devices.mm",
+        "shared/JuceLibraryCode/juce_audio_processors.mm",
+        "shared/JuceLibraryCode/juce_audio_utils.mm",
+        "shared/JuceLibraryCode/juce_core.mm",
+        "shared/JuceLibraryCode/juce_cryptography.mm",
+        "shared/JuceLibraryCode/juce_data_structures.mm",
+        "shared/JuceLibraryCode/juce_events.mm",
+        "shared/JuceLibraryCode/juce_graphics.mm",
+        "shared/JuceLibraryCode/juce_gui_basics.mm",
+        "shared/JuceLibraryCode/juce_gui_extra.mm",
+        "shared/JuceLibraryCode/juce_opengl.mm",
+        "shared/JuceLibraryCode/juce_video.mm"
       ],
       "conditions": [[
         'OS=="mac"',
@@ -52,7 +52,10 @@
           },
           'xcode_settings': {
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-            'GCC_ENABLE_CPP_RTTI': 'YES'
+            'GCC_ENABLE_CPP_RTTI': 'YES',
+            "OTHER_CPLUSPLUSFLAGS" : [ "-std=c++11", "-stdlib=libc++" ],
+            "OTHER_LDFLAGS": [ "-stdlib=libc++" ],
+            "MACOSX_DEPLOYMENT_TARGET": "10.7"
           }
         }
       ]]
