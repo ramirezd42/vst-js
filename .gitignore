@@ -1,3 +1,4 @@
 .DS_STORE
 build
 include/VST3
+host/Builds/MacOSX/.idea
