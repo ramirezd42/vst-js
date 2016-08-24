@@ -2,3 +2,4 @@
 build
 include/VST3
 host/Builds/MacOSX/.idea
+host/Builds/MacOSX/vst-js-host.xcodeproj/project.xcworkspace
