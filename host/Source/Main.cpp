@@ -9,8 +9,7 @@
 */
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-
-Component *createMainContentComponent();
+#include "AudioProcessorIPC.h"
 
 //==============================================================================
 class vstjshostApplication : public JUCEApplication {
@@ -35,18 +34,7 @@ public:
   void initialise(const String &commandLine) override {
     // This method is where you should put your application's initialisation code..
 
-    AudioDeviceManager deviceManager;
-    AudioDeviceManager::AudioDeviceSetup setup;
-    deviceManager.getAudioDeviceSetup(setup);
-
-    OwnedArray<juce::PluginDescription> foundPlugins;
-    VST3PluginFormat format;
-    format.findAllTypesForFile(foundPlugins, "/Library/Audio/Plug-Ins/VST3/SPAN.vst3");
-    description = foundPlugins[0];
-    instance = format.createInstanceFromDescription(*description, setup.sampleRate, setup.bufferSize);
-    editor = instance->createEditor();
-    mainWindow = new MainWindow(instance->getName());
-    mainWindow->setContentOwned(editor, true);
+    mainWindow = new MainWindow("Plugin Host");
   }
 
   void shutdown() override {
@@ -78,12 +66,60 @@ public:
     MainWindow(String name) : DocumentWindow(name,
       Colours::lightgrey,
       DocumentWindow::allButtons) {
+      formatManager.addDefaultFormats();
       setUsingNativeTitleBar(true);
-      setContentOwned(createMainContentComponent(), true);
       setResizable(true, true);
 
       centreWithSize(getWidth(), getHeight());
       setVisible(true);
+
+
+
+      AudioDeviceManager::AudioDeviceSetup setup;
+      deviceManager.getAudioDeviceSetup(setup);
+
+      PropertiesFile::Options options;
+      options.applicationName     = "Juce Audio Plugin Host";
+      options.filenameSuffix      = "settings";
+      options.osxLibrarySubFolder = "Preferences";
+
+      appProperties = new ApplicationProperties();
+      appProperties->setStorageParameters (options);
+
+//    ScopedPointer<XmlElement> savedAudioState (appProperties->getUserSettings() ->getXmlValue ("audioDeviceState"));
+      ScopedPointer<XmlElement> savedAudioState = appProperties->getUserSettings()->getXmlValue("audioDeviceState");
+
+      deviceManager.initialise (256, 256, savedAudioState, true);
+
+      OwnedArray<juce::PluginDescription> foundPlugins;
+      VST3PluginFormat format;
+      format.findAllTypesForFile(foundPlugins, "/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3");
+
+      description = foundPlugins[0];
+      AudioPluginInstance* instance = format.createInstanceFromDescription(*description, setup.sampleRate, setup.bufferSize);
+
+      //i/o graph nodes
+      inputProcessor = new AudioProcessorGraph::AudioGraphIOProcessor (AudioProcessorGraph::AudioGraphIOProcessor::audioInputNode);
+      outputProcessor = new AudioProcessorGraph::AudioGraphIOProcessor (AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode);
+
+      // Add all nodes to graph
+      inputNode = graph.addNode(inputProcessor);
+      pluginNode = graph.addNode(instance);
+      outputNode = graph.addNode(outputProcessor);
+
+      graph.addConnection(inputNode->nodeId, 0, pluginNode->nodeId, 0);
+      graph.addConnection(inputNode->nodeId, 1, pluginNode->nodeId, 1);
+
+      graph.addConnection(pluginNode->nodeId, 0, outputNode->nodeId, 0);
+      graph.addConnection(pluginNode->nodeId, 1, outputNode->nodeId, 1);
+
+      // Get UI and add it to main window
+      editor = instance->createEditor();
+      this->setContentOwned(editor, true);
+      ipc = new AudioProcessorIPC(&graph, 0, 0, false, 2, 2);
+
+//      graphPlayer.setProcessor(&graph);
+//      deviceManager.addAudioCallback(&graphPlayer);
     }
 
     void closeButtonPressed() override {
@@ -101,14 +137,29 @@ public:
     */
 
   private:
+    AudioDeviceManager deviceManager;
+    AudioPluginFormatManager formatManager;
+    ScopedPointer<PluginDescription> description;
+    ScopedPointer<AudioProcessorEditor> editor;
+    AudioProcessorGraph graph;
+    AudioProcessorPlayer graphPlayer;
+
+    ScopedPointer<AudioProcessor> inputProcessor;
+    ScopedPointer<AudioProcessor> outputProcessor;
+
+    ScopedPointer<AudioProcessorGraph::Node> inputNode;
+    ScopedPointer<AudioProcessorGraph::Node> outputNode;
+
+    ScopedPointer<AudioProcessorGraph::Node> pluginNode;
+
+    ScopedPointer<ApplicationProperties> appProperties;
+
+    ScopedPointer<AudioProcessorIPC> ipc;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
   };
 
 private:
   ScopedPointer<MainWindow> mainWindow;
-  ScopedPointer<AudioPluginInstance> instance;
-  ScopedPointer<PluginDescription> description;
-  ScopedPointer<AudioProcessorEditor> editor;
 };
 
 //==============================================================================
