@@ -9,7 +9,7 @@
 */
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "AudioProcessorIPC.h"
+#include "IPCAudioIODevice.h"
 
 //==============================================================================
 class vstjshostApplication : public JUCEApplication {
@@ -89,6 +89,9 @@ public:
 //    ScopedPointer<XmlElement> savedAudioState (appProperties->getUserSettings() ->getXmlValue ("audioDeviceState"));
       ScopedPointer<XmlElement> savedAudioState = appProperties->getUserSettings()->getXmlValue("audioDeviceState");
 
+      IPCAudioIODeviceType* ipcType = new IPCAudioIODeviceType();
+      deviceManager.addAudioDeviceType(ipcType);
+      deviceManager.setCurrentAudioDeviceType("IPC", true);
       deviceManager.initialise (256, 256, savedAudioState, true);
 
       OwnedArray<juce::PluginDescription> foundPlugins;
@@ -116,10 +119,9 @@ public:
       // Get UI and add it to main window
       editor = instance->createEditor();
       this->setContentOwned(editor, true);
-      ipc = new AudioProcessorIPC(&graph, 0, 0, false, 2, 2);
 
-//      graphPlayer.setProcessor(&graph);
-//      deviceManager.addAudioCallback(&graphPlayer);
+      graphPlayer.setProcessor(&graph);
+      deviceManager.addAudioCallback(&graphPlayer);
     }
 
     void closeButtonPressed() override {
@@ -154,7 +156,6 @@ public:
 
     ScopedPointer<ApplicationProperties> appProperties;
 
-    ScopedPointer<AudioProcessorIPC> ipc;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
   };
 

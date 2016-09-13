@@ -36,7 +36,7 @@
 		A0CC0DE3DCB692494CCCAC48 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E44ABF6CF10060F99B267ED7 /* AudioToolbox.framework */; };
 		AA3BD4BA22D24471884B84E3 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EECA215F031E76BAABC8CF1E /* IOKit.framework */; };
 		AE8CBBF80CEBA421EBB81F7A /* MainComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 527CEEB362958E8976D03C0F /* MainComponent.cpp */; };
-		B17439C84695FBCD39D27E01 /* AudioProcessorIPC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B17438131C00A1697AFEE061 /* AudioProcessorIPC.cpp */; };
+		B17430FCFC718B93D8D3CB68 /* IPCAudioIODevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1743CD02C36EFCDCB372F0A /* IPCAudioIODevice.cpp */; };
 		B18EFA21E22A272E6AD7F942 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE75F7D0018D3595433D2C16 /* WebKit.framework */; };
 		D74073519E4CDFE480D37DFA /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AC9EEE12F65B23C9D5B8914 /* QuickTime.framework */; };
 		F0121A6F375EEE5B760F3ACC /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B65E4646AA0B0D7A36D4DD25 /* Main.cpp */; };
@@ -894,8 +894,8 @@
 		B0EE3617F1D6A053649BE948 /* jmemmgr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = jmemmgr.c; path = ../../../include/JUCE/modules/juce_graphics/image_formats/jpglib/jmemmgr.c; sourceTree = SOURCE_ROOT; };
 		B11B7B7BB9743B3A07A8B45D /* zutil.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = zutil.c; path = ../../../include/JUCE/modules/juce_core/zip/zlib/zutil.c; sourceTree = SOURCE_ROOT; };
 		B16273BF01B2AE22D0D7774F /* juce_UnitTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_UnitTest.h; path = ../../../include/JUCE/modules/juce_core/unit_tests/juce_UnitTest.h; sourceTree = SOURCE_ROOT; };
-		B17438131C00A1697AFEE061 /* AudioProcessorIPC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioProcessorIPC.cpp; sourceTree = "<group>"; };
-		B1743B649FD4A333B6C05629 /* AudioProcessorIPC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioProcessorIPC.h; sourceTree = "<group>"; };
+		B1743BE79317A6EC5EE0B9B5 /* IPCAudioIODevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPCAudioIODevice.h; sourceTree = "<group>"; };
+		B1743CD02C36EFCDCB372F0A /* IPCAudioIODevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IPCAudioIODevice.cpp; sourceTree = "<group>"; };
 		B20869CC6CBD7BED73BF7635 /* juce_RSAKey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_RSAKey.h; path = ../../../include/JUCE/modules/juce_cryptography/encryption/juce_RSAKey.h; sourceTree = SOURCE_ROOT; };
 		B2436B06E2E546AA5BB08A6A /* juce_FileSearchPathListComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_FileSearchPathListComponent.cpp; path = ../../../include/JUCE/modules/juce_gui_basics/filebrowser/juce_FileSearchPathListComponent.cpp; sourceTree = SOURCE_ROOT; };
 		B25168DA0CE95BCF3C1D3929 /* juce_AudioProcessorPlayer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_AudioProcessorPlayer.cpp; path = ../../../include/JUCE/modules/juce_audio_utils/players/juce_AudioProcessorPlayer.cpp; sourceTree = SOURCE_ROOT; };
@@ -2878,8 +2878,8 @@
 			children = (
 				527CEEB362958E8976D03C0F /* MainComponent.cpp */,
 				B65E4646AA0B0D7A36D4DD25 /* Main.cpp */,
-				B17438131C00A1697AFEE061 /* AudioProcessorIPC.cpp */,
-				B1743B649FD4A333B6C05629 /* AudioProcessorIPC.h */,
+				B1743CD02C36EFCDCB372F0A /* IPCAudioIODevice.cpp */,
+				B1743BE79317A6EC5EE0B9B5 /* IPCAudioIODevice.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -3611,7 +3611,7 @@
 				566A1AC81D6D3A780003645A /* juce_audio_formats.mm in Sources */,
 				566A1AD61D6D3A780003645A /* juce_graphics.mm in Sources */,
 				566A1AC41D6D3A780003645A /* juce_audio_basics.mm in Sources */,
-				B17439C84695FBCD39D27E01 /* AudioProcessorIPC.cpp in Sources */,
+				B17430FCFC718B93D8D3CB68 /* IPCAudioIODevice.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
