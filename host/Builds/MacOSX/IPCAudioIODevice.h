@@ -6,7 +6,7 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-class IPCAudioIODevice : public AudioIODevice {
+class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
   IPCAudioIODevice(const String & deviceName);
   ~IPCAudioIODevice() {}
@@ -29,6 +29,7 @@ public:
   BigInteger getActiveInputChannels() const override;
   int getOutputLatencyInSamples() override;
   int getInputLatencyInSamples() override;
+  void run() override;
 
   bool hasControlPanel() const override { return false; }
   bool showControlPanel() override { return false; }
@@ -39,6 +40,8 @@ private:
   ScopedPointer<Array<double>> sampleRates;
   ScopedPointer<Array<int>> bufferSizes;
   ScopedPointer<Array<int>> bitDepths;
+
+  ScopedPointer<AudioIODeviceCallback> callback;
 
   bool deviceIsOpen;
   bool deviceIsPlaying;

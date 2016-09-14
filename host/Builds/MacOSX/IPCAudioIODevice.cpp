@@ -6,6 +6,7 @@
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName) :
 AudioIODevice(deviceName, "IPC"),
+Thread (deviceName),
 deviceIsOpen(false),
 deviceIsPlaying(false)
 {
@@ -30,12 +31,14 @@ deviceIsPlaying(false)
 String IPCAudioIODevice::open(const BigInteger &inputChannels, const BigInteger &outputChannels, double sampleRate, int bufferSizeSamples) {
   // TODO: implement stub
   this->deviceIsOpen = true;
+  this->startThread(9);
   return "";
 }
 
 void IPCAudioIODevice::close() {
   // TODO: implement stub
   this->deviceIsOpen = false;
+  this->stopThread(10000);
 }
 
 bool IPCAudioIODevice::isOpen() {
@@ -45,12 +48,23 @@ bool IPCAudioIODevice::isOpen() {
 
 void IPCAudioIODevice::start(AudioIODeviceCallback *callback) {
   // TODO: implement stub
-  this->deviceIsPlaying = true;
+  if (!deviceIsPlaying) {
+    if(callback != nullptr) {
+      callback->audioDeviceAboutToStart(this);
+    }
+
+    deviceIsPlaying = true;
+    this->callback = callback;
+  }
+  deviceIsPlaying = true;
 }
 
 void IPCAudioIODevice::stop() {
   // TODO: implement stub
   this->deviceIsPlaying = false;
+  if(callback != nullptr) {
+    callback->audioDeviceStopped();
+  }
 }
 
 bool IPCAudioIODevice::isPlaying() {
@@ -96,4 +110,39 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
   // TODO: implement stub
   return 0;
 }
+
+void IPCAudioIODevice::run() {
+  while(! threadShouldExit()) {
+    if(isPlaying() && callback != nullptr) {
+      int numSamples = 3;
+      const float** inputChannelData;
+      int numInputChannels = 2;
+      float **outputChannelData;
+      int numOutputChannels = 2;
+
+      Array<const float*> inputChannels;
+      Array<float*> outputChannels;
+
+      AudioSampleBuffer buffer (numInputChannels, numSamples);
+      buffer.clear();
+
+      for (int i=0; i < numInputChannels; ++i) {
+        inputChannels.add(buffer.getReadPointer(i));
+      }
+
+      for (int i=0; i < numOutputChannels; ++i) {
+        outputChannels.add(buffer.getWritePointer(i));
+      }
+
+      callback->audioDeviceIOCallback(
+        inputChannels.getRawDataPointer(),
+        numInputChannels,
+        outputChannels.getRawDataPointer(),
+        numOutputChannels,
+        numSamples
+      );
+    }
+  }
+}
+
 
