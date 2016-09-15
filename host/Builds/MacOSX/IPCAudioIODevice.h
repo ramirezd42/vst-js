@@ -42,9 +42,13 @@ private:
   ScopedPointer<Array<int>> bitDepths;
 
   ScopedPointer<AudioIODeviceCallback> callback;
+  void getNextAudioBlock(AudioSampleBuffer* buffer, int numInputChannels, int numSamples);
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
+  int bufferSize = 0;
+
+  Random randomGen;
 };
 
 class IPCAudioIODeviceType : public AudioIODeviceType

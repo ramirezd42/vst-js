@@ -93,12 +93,12 @@ int IPCAudioIODevice::getCurrentBitDepth() {
 
 BigInteger IPCAudioIODevice::getActiveOutputChannels() const {
   // TODO: implement stub
-  return 11111111;
+  return 11;
 }
 
 BigInteger IPCAudioIODevice::getActiveInputChannels() const {
   // TODO: implement stub
-  return 11111111;
+  return 11;
 }
 
 int IPCAudioIODevice::getOutputLatencyInSamples() {
@@ -112,28 +112,26 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
 }
 
 void IPCAudioIODevice::run() {
+  int numSamples = 3;
+  int numInputChannels = 2;
+  int numOutputChannels = 2;
+
+  Array<const float*> inputChannels;
+  Array<float*> outputChannels;
+
+  AudioSampleBuffer buffer (numInputChannels + numOutputChannels, numSamples);
+
+  for (int i=0; i < numInputChannels; ++i) {
+    inputChannels.add(buffer.getReadPointer(i));
+  }
+
+  for (int i=0; i < numOutputChannels; ++i) {
+    outputChannels.add(buffer.getWritePointer(i + numInputChannels));
+  }
+
   while(! threadShouldExit()) {
     if(isPlaying() && callback != nullptr) {
-      int numSamples = 3;
-      const float** inputChannelData;
-      int numInputChannels = 2;
-      float **outputChannelData;
-      int numOutputChannels = 2;
-
-      Array<const float*> inputChannels;
-      Array<float*> outputChannels;
-
-      AudioSampleBuffer buffer (numInputChannels, numSamples);
-      buffer.clear();
-
-      for (int i=0; i < numInputChannels; ++i) {
-        inputChannels.add(buffer.getReadPointer(i));
-      }
-
-      for (int i=0; i < numOutputChannels; ++i) {
-        outputChannels.add(buffer.getWritePointer(i));
-      }
-
+      getNextAudioBlock(&buffer, numInputChannels, numSamples);
       callback->audioDeviceIOCallback(
         inputChannels.getRawDataPointer(),
         numInputChannels,
@@ -145,4 +143,13 @@ void IPCAudioIODevice::run() {
   }
 }
 
+void IPCAudioIODevice::getNextAudioBlock(AudioSampleBuffer* buffer, int numInputChannels, int numSamples) {
+  for (int channel = 0; channel < numInputChannels; ++channel)
+  {
+     float* writeBuffer = buffer->getWritePointer (channel);
+
+    for (int sample = 0; sample < numSamples; ++sample)
+      writeBuffer[sample] = randomGen.nextFloat() * 0.25f - 0.125f;
+  }
+}
 
