@@ -435,6 +435,7 @@
 					"$(inherited)",
 					../../../shared/JuceLibraryCode,
 					../../../include/JUCE/modules,
+					../../../include/boost/interprocess,
 					../../../include/VST3,
 				);
 				INFOPLIST_FILE = "Info-App.plist";
@@ -466,7 +467,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					../../../shared/JuceLibraryCode,
+					../../../include,
+				);
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(inherited)",
+					../../../shared/JuceLibraryCode,
 					../../../include/JUCE/modules,
+					../../../include/boost/interprocess,
 					../../../include/VST3,
 				);
 				INFOPLIST_FILE = "Info-App.plist";

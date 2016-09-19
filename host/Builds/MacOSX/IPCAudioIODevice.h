@@ -5,7 +5,12 @@
 #ifndef VST_JS_HOST_IPCAUDIOIODEVICE_H
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
+//#ifndef BOOST_DATE_TIME_NO_LIB
+//#define BOOST_DATE_TIME_NO_LIB
+
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
+#include <boost/interprocess/managed_shared_memory.hpp>
+
 class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
   IPCAudioIODevice(const String & deviceName);
