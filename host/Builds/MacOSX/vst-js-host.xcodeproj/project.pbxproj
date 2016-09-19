@@ -29,6 +29,7 @@
 		566A1ADF1D6D3A780003645A /* ReadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = 566A1AC21D6D3A780003645A /* ReadMe.txt */; };
 		566A1AE11D6D3E9E0003645A /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 566A1AE01D6D3E9E0003645A /* AudioUnit.framework */; };
 		566A1AE31D6D3EA80003645A /* CoreAudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 566A1AE21D6D3EA80003645A /* CoreAudioKit.framework */; };
+		568A6A3A1D8F8C35006C7680 /* IPCAudioIODevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */; };
 		79E68730456172968AA1F763 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF52CD2A0B41261A587E785 /* QTKit.framework */; };
 		8A2A19C326C20BD66B1228FE /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 211EFAE538408FE8C53F6996 /* Carbon.framework */; };
 		99C0D3219A97A8AA750B958D /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F3606EBFD95AD45767AB108 /* CoreAudio.framework */; };
@@ -36,7 +37,6 @@
 		A0CC0DE3DCB692494CCCAC48 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E44ABF6CF10060F99B267ED7 /* AudioToolbox.framework */; };
 		AA3BD4BA22D24471884B84E3 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EECA215F031E76BAABC8CF1E /* IOKit.framework */; };
 		AE8CBBF80CEBA421EBB81F7A /* MainComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 527CEEB362958E8976D03C0F /* MainComponent.cpp */; };
-		B17430FCFC718B93D8D3CB68 /* IPCAudioIODevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1743CD02C36EFCDCB372F0A /* IPCAudioIODevice.cpp */; };
 		B18EFA21E22A272E6AD7F942 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE75F7D0018D3595433D2C16 /* WebKit.framework */; };
 		D74073519E4CDFE480D37DFA /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AC9EEE12F65B23C9D5B8914 /* QuickTime.framework */; };
 		F0121A6F375EEE5B760F3ACC /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B65E4646AA0B0D7A36D4DD25 /* Main.cpp */; };
@@ -88,6 +88,7 @@
 		566A1AC21D6D3A780003645A /* ReadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
 		566A1AE01D6D3E9E0003645A /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		566A1AE21D6D3EA80003645A /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IPCAudioIODevice.cpp; path = ../../Source/IPCAudioIODevice.cpp; sourceTree = "<group>"; };
 		577BD5E497815D1568F3BC32 /* juce_graphics.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_graphics.mm; path = ../../JuceLibraryCode/juce_graphics.mm; sourceTree = SOURCE_ROOT; };
 		59EE5B33A8DBBC81396DFF3F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		5F3606EBFD95AD45767AB108 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -102,8 +103,6 @@
 		9CB7878ABB8C263782FC0753 /* juce_video.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_video.mm; path = ../../JuceLibraryCode/juce_video.mm; sourceTree = SOURCE_ROOT; };
 		A7A63B9D7875C58F898B93F8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		AC0725740D62575856B2EB2B /* DiscRecording.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DiscRecording.framework; path = System/Library/Frameworks/DiscRecording.framework; sourceTree = SDKROOT; };
-		B1743BE79317A6EC5EE0B9B5 /* IPCAudioIODevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPCAudioIODevice.h; sourceTree = "<group>"; };
-		B1743CD02C36EFCDCB372F0A /* IPCAudioIODevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IPCAudioIODevice.cpp; sourceTree = "<group>"; };
 		B5F87B66CE6013015EE6A2A0 /* juce_core.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_core.mm; path = ../../JuceLibraryCode/juce_core.mm; sourceTree = SOURCE_ROOT; };
 		B65E4646AA0B0D7A36D4DD25 /* Main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Main.cpp; path = ../../Source/Main.cpp; sourceTree = SOURCE_ROOT; };
 		C682F2E84EF0DAC997DBD8FA /* vst-js-host.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vst-js-host.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -259,9 +258,8 @@
 			isa = PBXGroup;
 			children = (
 				527CEEB362958E8976D03C0F /* MainComponent.cpp */,
+				568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */,
 				B65E4646AA0B0D7A36D4DD25 /* Main.cpp */,
-				B1743CD02C36EFCDCB372F0A /* IPCAudioIODevice.cpp */,
-				B1743BE79317A6EC5EE0B9B5 /* IPCAudioIODevice.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -362,8 +360,8 @@
 				566A1ACC1D6D3A780003645A /* juce_audio_utils.mm in Sources */,
 				566A1AC81D6D3A780003645A /* juce_audio_formats.mm in Sources */,
 				566A1AD61D6D3A780003645A /* juce_graphics.mm in Sources */,
+				568A6A3A1D8F8C35006C7680 /* IPCAudioIODevice.cpp in Sources */,
 				566A1AC41D6D3A780003645A /* juce_audio_basics.mm in Sources */,
-				B17430FCFC718B93D8D3CB68 /* IPCAudioIODevice.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
