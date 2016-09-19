@@ -4,11 +4,14 @@
 
 #include "IPCAudioIODevice.h"
 
+using namespace boost::interprocess;
+
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName) :
 AudioIODevice(deviceName, "IPC"),
 Thread (deviceName),
 deviceIsOpen(false),
-deviceIsPlaying(false)
+deviceIsPlaying(false),
+sharedMemorySize(10000)
 {
   inputChannelNames = new StringArray();
   inputChannelNames->add("Input 1");
@@ -32,6 +35,14 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels, const BigInteger 
   // TODO: implement stub
   this->deviceIsOpen = true;
   this->startThread(9);
+
+  shared_memory_object::remove("ipc-audio-io");
+  sharedMemory = managed_shared_memory(
+    boost::interprocess::open_only,
+    "ipc-audio-io"
+  );
+  
+  audioIODataObject = sharedMemory.find<AudioIOData> ("audioData").first;
   return "";
 }
 
@@ -39,6 +50,10 @@ void IPCAudioIODevice::close() {
   // TODO: implement stub
   this->deviceIsOpen = false;
   this->stopThread(10000);
+
+  shared_memory_object::remove("ipc-audio-io");
+  deviceIsOpen = false;
+  stopThread(10000);
 }
 
 bool IPCAudioIODevice::isOpen() {
@@ -116,26 +131,26 @@ void IPCAudioIODevice::run() {
   int numInputChannels = 2;
   int numOutputChannels = 2;
 
-  Array<const float*> inputChannels;
-  Array<float*> outputChannels;
-
-  AudioSampleBuffer buffer (numInputChannels + numOutputChannels, numSamples);
-
-  for (int i=0; i < numInputChannels; ++i) {
-    inputChannels.add(buffer.getReadPointer(i));
-  }
-
-  for (int i=0; i < numOutputChannels; ++i) {
-    outputChannels.add(buffer.getWritePointer(i + numInputChannels));
-  }
+//  Array<const float*> inputChannels;
+//  Array<float*> outputChannels;
+//
+//  AudioSampleBuffer buffer (numInputChannels + numOutputChannels, numSamples);
+//
+//  for (int i=0; i < numInputChannels; ++i) {
+//    inputChannels.add(buffer.getReadPointer(i));
+//  }
+//
+//  for (int i=0; i < numOutputChannels; ++i) {
+//    outputChannels.add(buffer.getWritePointer(i + numInputChannels));
+//  }
 
   while(! threadShouldExit()) {
     if(isPlaying() && callback != nullptr) {
-      getNextAudioBlock(&buffer, numInputChannels, numSamples);
+//      getNextAudioBlock(&buffer, numInputChannels, numSamples);
       callback->audioDeviceIOCallback(
-        inputChannels.getRawDataPointer(),
+        audioIODataObject->first,
         numInputChannels,
-        outputChannels.getRawDataPointer(),
+        audioIODataObject->second,
         numOutputChannels,
         numSamples
       );

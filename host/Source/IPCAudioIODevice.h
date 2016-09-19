@@ -5,11 +5,10 @@
 #ifndef VST_JS_HOST_IPCAUDIOIODEVICE_H
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
-//#ifndef BOOST_DATE_TIME_NO_LIB
-//#define BOOST_DATE_TIME_NO_LIB
-
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
 #include <boost/interprocess/managed_shared_memory.hpp>
+typedef std::pair<const float **, float **> AudioIOData;
+typedef std::pair<double, int> MyType;
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
@@ -45,8 +44,13 @@ private:
   ScopedPointer<Array<double>> sampleRates;
   ScopedPointer<Array<int>> bufferSizes;
   ScopedPointer<Array<int>> bitDepths;
-
   ScopedPointer<AudioIODeviceCallback> callback;
+  
+  boost::interprocess::managed_shared_memory sharedMemory;
+  boost::interprocess::mapped_region mappedRegion;
+  AudioIOData* audioIODataObject;
+  std::size_t sharedMemorySize;
+  
   void getNextAudioBlock(AudioSampleBuffer* buffer, int numInputChannels, int numSamples);
 
   bool deviceIsOpen;
