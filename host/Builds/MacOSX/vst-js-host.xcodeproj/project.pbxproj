@@ -400,6 +400,7 @@
 				);
 				INFOPLIST_FILE = "Info-App.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.vstjshost;
 				SDKROOT_ppc = macosx10.5;
@@ -438,6 +439,7 @@
 				);
 				INFOPLIST_FILE = "Info-App.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.vstjshost;
 				SDKROOT_ppc = macosx10.5;
