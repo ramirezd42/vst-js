@@ -7,19 +7,28 @@
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
 #include <boost/interprocess/managed_shared_memory.hpp>
-typedef std::pair<const float **, float **> AudioIOData;
-typedef std::pair<double, int> MyType;
+#include <boost/interprocess/containers/vector.hpp>
 
-class IPCAudioIODevice : public AudioIODevice, private Thread {
+
+//Alias an STL-like allocator of ints that allocates ints from the segment
+typedef boost::interprocess::allocator<float, boost::interprocess::managed_shared_memory::segment_manager>
+ShmemAllocator;
+
+//Alias a vector that uses the previous STL-like allocator
+typedef boost::interprocess::vector<float, ShmemAllocator> IPCAudioData;
+
+
+  class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
-  IPCAudioIODevice(const String & deviceName);
+  IPCAudioIODevice(const String &deviceName);
   ~IPCAudioIODevice() {}
   StringArray getOutputChannelNames() override { return *inputChannelNames; };
   StringArray getInputChannelNames() override { return *outputChannelNames; };
   Array<double> getAvailableSampleRates() override { return *sampleRates; };
   Array<int> getAvailableBufferSizes() { return *bufferSizes; };
   int getDefaultBufferSize() { return bufferSizes->getFirst(); };
-  String open (const BigInteger &inputChannels, const BigInteger &outputChannels, double sampleRate, int bufferSizeSamples) override;
+  String open(const BigInteger &inputChannels, const BigInteger &outputChannels,
+              double sampleRate, int bufferSizeSamples) override;
   void close() override;
   bool isOpen() override;
   void start(AudioIODeviceCallback *callback) override;
@@ -37,7 +46,10 @@ public:
 
   bool hasControlPanel() const override { return false; }
   bool showControlPanel() override { return false; }
-  bool setAudioPreprocessingEnabled(bool shouldBeEnabled) override { return false; }
+  bool setAudioPreprocessingEnabled(bool shouldBeEnabled) override {
+    return false;
+  }
+
 private:
   ScopedPointer<StringArray> inputChannelNames;
   ScopedPointer<StringArray> outputChannelNames;
@@ -45,13 +57,19 @@ private:
   ScopedPointer<Array<int>> bufferSizes;
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
-  
+
   boost::interprocess::managed_shared_memory sharedMemory;
   boost::interprocess::mapped_region mappedRegion;
-  AudioIOData* audioIODataObject;
+  IPCAudioData* inputData;
+  IPCAudioData* outputData;
+
+  const float** getInputChannelData(IPCAudioData* data, int numChannels, int numSamples);
+  float ** getOutputChannelData(IPCAudioData* data, int numChannels, int numSamples);
+
   std::size_t sharedMemorySize;
-  
-  void getNextAudioBlock(AudioSampleBuffer* buffer, int numInputChannels, int numSamples);
+
+  void getNextAudioBlock(AudioSampleBuffer *buffer, int numInputChannels, int numSamples);
+
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
@@ -60,23 +78,29 @@ private:
   Random randomGen;
 };
 
-class IPCAudioIODeviceType : public AudioIODeviceType
-{
+class IPCAudioIODeviceType : public AudioIODeviceType {
 public:
-  IPCAudioIODeviceType() : AudioIODeviceType ("IPC") {
+  IPCAudioIODeviceType() : AudioIODeviceType("IPC") {
     deviceNames = new StringArray();
     deviceNames->add("default");
   }
-  void scanForDevices() override { /* todo: implement stub */ }
-  StringArray getDeviceNames(bool wantInputNames = false) const override { return *deviceNames; }
+  void scanForDevices() override { /* todo: implement stub */
+  }
+  StringArray getDeviceNames(bool wantInputNames = false) const override {
+    return *deviceNames;
+  }
   int getDefaultDeviceIndex(bool forInput) const override { return 0; }
-  int getIndexOfDevice (AudioIODevice* device, bool asInput) const override { return 0; }
+  int getIndexOfDevice(AudioIODevice *device, bool asInput) const override {
+    return 0;
+  }
   bool hasSeparateInputsAndOutputs() const override { return false; }
-  AudioIODevice* createDevice(const String& outputDeviceName, const String& inputDeviceName) override {
+  AudioIODevice *createDevice(const String &outputDeviceName,
+                              const String &inputDeviceName) override {
     return new IPCAudioIODevice(deviceNames->getReference(0));
   }
+
 private:
   ScopedPointer<StringArray> deviceNames;
 };
 
-#endif //VST_JS_HOST_IPCAUDIOIODEVICE_H
+#endif // VST_JS_HOST_IPCAUDIOIODEVICE_H

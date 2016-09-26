@@ -91,7 +91,10 @@ public:
 
       IPCAudioIODeviceType* ipcType = new IPCAudioIODeviceType();
       deviceManager.addAudioDeviceType(ipcType);
-      deviceManager.setCurrentAudioDeviceType("IPC", true);
+      if(deviceManager.getCurrentAudioDeviceType() != "IPC") {
+        deviceManager.setCurrentAudioDeviceType("IPC", true);
+      }
+
       deviceManager.initialise (256, 256, savedAudioState, true);
 
       OwnedArray<juce::PluginDescription> foundPlugins;
@@ -131,6 +134,7 @@ public:
       JUCEApplication::getInstance()->systemRequestedQuit();
     }
 
+    
     /* Note: Be careful if you override any DocumentWindow methods - the base
        class uses a lot of them, so by overriding you might break its functionality.
        It's best to do all your work in your content component instead, but if
