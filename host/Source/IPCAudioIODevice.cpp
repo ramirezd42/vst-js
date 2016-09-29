@@ -122,7 +122,7 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
 void IPCAudioIODevice::run() {
   int numInputChannels = 2;
   int numOutputChannels = 2;
-  
+
   const float **inputChannelData;
   float **outputChannelData;
   int numSamples = 3;

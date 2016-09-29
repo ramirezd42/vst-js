@@ -6,6 +6,7 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
+#include "zmq.h"
 
   class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:

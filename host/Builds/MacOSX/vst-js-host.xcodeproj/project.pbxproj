@@ -392,11 +392,10 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					../../../shared/JuceLibraryCode,
-					../../../include/JUCE/modules,
-					../../../include/boost/interprocess,
 					../../../include/VST3,
+					../../../include/JUCE/modules,
+					../../../include/zmq,
+					../../../shared/JuceLibraryCode,
 				);
 				INFOPLIST_FILE = "Info-App.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -426,16 +425,10 @@
 				);
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					../../../shared/JuceLibraryCode,
-					../../../include,
-				);
-				"HEADER_SEARCH_PATHS[arch=*]" = (
-					"$(inherited)",
-					../../../shared/JuceLibraryCode,
-					../../../include/JUCE/modules,
-					../../../include/boost/interprocess,
 					../../../include/VST3,
+					../../../include/JUCE/modules,
+					../../../include/zmq,
+					../../../shared/JuceLibraryCode,
 				);
 				INFOPLIST_FILE = "Info-App.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
