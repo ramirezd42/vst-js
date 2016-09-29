@@ -6,17 +6,6 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/containers/vector.hpp>
-
-
-//Alias an STL-like allocator of ints that allocates ints from the segment
-typedef boost::interprocess::allocator<float, boost::interprocess::managed_shared_memory::segment_manager>
-ShmemAllocator;
-
-//Alias a vector that uses the previous STL-like allocator
-typedef boost::interprocess::vector<float, ShmemAllocator> IPCAudioData;
-
 
   class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
@@ -57,14 +46,6 @@ private:
   ScopedPointer<Array<int>> bufferSizes;
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
-
-  boost::interprocess::managed_shared_memory sharedMemory;
-  boost::interprocess::mapped_region mappedRegion;
-  IPCAudioData* inputData;
-  IPCAudioData* outputData;
-
-  const float** getInputChannelData(IPCAudioData* data, int numChannels, int numSamples);
-  float ** getOutputChannelData(IPCAudioData* data, int numChannels, int numSamples);
 
   std::size_t sharedMemorySize;
 
