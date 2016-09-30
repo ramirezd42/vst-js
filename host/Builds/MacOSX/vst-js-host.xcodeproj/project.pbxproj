@@ -30,6 +30,7 @@
 		566A1AE11D6D3E9E0003645A /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 566A1AE01D6D3E9E0003645A /* AudioUnit.framework */; };
 		566A1AE31D6D3EA80003645A /* CoreAudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 566A1AE21D6D3EA80003645A /* CoreAudioKit.framework */; };
 		568A6A3A1D8F8C35006C7680 /* IPCAudioIODevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */; };
+		56CA02D21D9DF6920090334B /* libzmq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56CA02D11D9DF6920090334B /* libzmq.a */; };
 		79E68730456172968AA1F763 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF52CD2A0B41261A587E785 /* QTKit.framework */; };
 		8A2A19C326C20BD66B1228FE /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 211EFAE538408FE8C53F6996 /* Carbon.framework */; };
 		99C0D3219A97A8AA750B958D /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F3606EBFD95AD45767AB108 /* CoreAudio.framework */; };
@@ -84,6 +85,7 @@
 		566A1AE21D6D3EA80003645A /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IPCAudioIODevice.cpp; path = ../../Source/IPCAudioIODevice.cpp; sourceTree = "<group>"; };
 		568A6A3B1D8F8C8E006C7680 /* IPCAudioIODevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = IPCAudioIODevice.h; path = ../../Source/IPCAudioIODevice.h; sourceTree = "<group>"; };
+		56CA02D11D9DF6920090334B /* libzmq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzmq.a; path = ../../../lib/libzmq.a; sourceTree = "<group>"; };
 		59EE5B33A8DBBC81396DFF3F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		5F3606EBFD95AD45767AB108 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		7AC9EEE12F65B23C9D5B8914 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
@@ -110,6 +112,7 @@
 				A0CC0DE3DCB692494CCCAC48 /* AudioToolbox.framework in Frameworks */,
 				8A2A19C326C20BD66B1228FE /* Carbon.framework in Frameworks */,
 				4EA6A935B1DC9B3E29D3D82F /* Cocoa.framework in Frameworks */,
+				56CA02D21D9DF6920090334B /* libzmq.a in Frameworks */,
 				99C0D3219A97A8AA750B958D /* CoreAudio.framework in Frameworks */,
 				3992AFE650B8CDCD2497562D /* CoreMIDI.framework in Frameworks */,
 				46C32B6878C84F967F0B3309 /* DiscRecording.framework in Frameworks */,
@@ -128,6 +131,7 @@
 		0A323F53E296D23ADA60FC20 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				56CA02D01D9DF6890090334B /* lib */,
 				566A1AA31D6D3A780003645A /* JuceLibraryCode */,
 				81C8D11C32EE8E2CD52624E1 /* vst-js-host */,
 				0DD83BB765496CE87FFD895C /* Resources */,
@@ -183,6 +187,14 @@
 			);
 			name = JuceLibraryCode;
 			path = ../../../shared/JuceLibraryCode;
+			sourceTree = "<group>";
+		};
+		56CA02D01D9DF6890090334B /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				56CA02D11D9DF6920090334B /* libzmq.a */,
+			);
+			name = lib;
 			sourceTree = "<group>";
 		};
 		66C4163D685ABCBA56CE2E04 /* Frameworks */ = {
@@ -344,6 +356,7 @@
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = ../../../lib;
 				PRODUCT_NAME = "vst-js-host";
 				WARNING_CFLAGS = "-Wreorder";
 				ZERO_LINK = NO;
@@ -365,6 +378,7 @@
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
 				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = ../../../lib;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "vst-js-host";
 				WARNING_CFLAGS = "-Wreorder";
