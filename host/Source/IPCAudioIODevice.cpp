@@ -4,6 +4,7 @@
 
 #include "IPCAudioIODevice.h"
 #include <vector>
+#include "zhelpers.hpp"
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName) :
 AudioIODevice(deviceName, "IPC"),
