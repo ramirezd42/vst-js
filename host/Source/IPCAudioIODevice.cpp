@@ -9,8 +9,9 @@
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName) :
 AudioIODevice(deviceName, "IPC"),
 Thread (deviceName),
-sharedMemorySize(10000),
 deviceIsOpen(false),
+context(1),
+socket(context, ZMQ_REP),
 deviceIsPlaying(false)
 {
   inputChannelNames = new StringArray();
@@ -37,6 +38,8 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels, const BigInteger 
   }
   // TODO: implement stub
   this->deviceIsOpen = true;
+
+  socket.bind("tcp://127.0.0.1:5560");
   this->startThread(9);
   return "";
 }
@@ -48,6 +51,7 @@ void IPCAudioIODevice::close() {
 
   deviceIsOpen = false;
   stopThread(10000);
+  socket.close();
 }
 
 bool IPCAudioIODevice::isOpen() {
@@ -120,26 +124,58 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
   return 0;
 }
 
-void IPCAudioIODevice::run() {
-  int numInputChannels = 2;
-  int numOutputChannels = 2;
+void IPCAudioIODevice::prepareInputData(vstjs::IOBuffer* buffer) {
+  nextInputBuffer.clear();
+  for(int channel = 0; channel < buffer->numinputchannels(); ++channel) {
+    Array<float>* channelData = new Array<float>;
+    for(int sample = 0; sample < buffer->samplesize(); ++sample) {
+      channelData->add(buffer->inputdata(channel * buffer->samplesize() + sample));
+    }
+    nextInputBuffer.add(channelData->getRawDataPointer());
+  }
+}
 
-  const float **inputChannelData;
-  float **outputChannelData;
-  int numSamples = 3;
+void IPCAudioIODevice::prepareOutputData(vstjs::IOBuffer* buffer) {
+  nextOutputBuffer.clear();
+  for(int channel = 0; channel < buffer->numoutputchannels(); ++channel) {
+    Array<float>* channelData = new Array<float>;
+    for(int sample = 0; sample < buffer->samplesize(); ++sample) {
+      channelData->add(buffer->outputdata(channel * buffer->samplesize() + sample));
+    }
+    nextOutputBuffer.add(channelData->getRawDataPointer());
+  }
+}
+  
+void IPCAudioIODevice::run() {
+
+  
 
   while(! threadShouldExit()) {
-    // TODO: why is this not blocking even though the other proc has locked this mutex at this point
-    {
-      if(isPlaying() && callback != nullptr) {
+      std::string message = s_recv (socket);
+      vstjs::IOBuffer nextBuffer;
+      if(nextBuffer.ParseFromString(message) && isPlaying() && callback != nullptr) {
+
+        prepareInputData(&nextBuffer);
+        prepareOutputData(&nextBuffer);
+
         callback->audioDeviceIOCallback(
-          inputChannelData,
-          numInputChannels,
-          outputChannelData,
-          numOutputChannels,
-          numSamples
+          nextInputBuffer.getRawDataPointer(),
+          nextBuffer.numinputchannels(),
+          nextOutputBuffer.getRawDataPointer(),
+          nextBuffer.numoutputchannels(),
+          nextBuffer.samplesize()
         );
-      }
+
+        for(int channel = 0; channel < nextBuffer.numoutputchannels(); ++channel) {
+          for (int sample = 0; sample < nextBuffer.samplesize(); ++sample) {
+            nextBuffer.set_outputdata((channel * nextBuffer.samplesize()) + sample, nextOutputBuffer[channel][sample]);
+          }
+        }
+
+        std::string message;
+        nextBuffer.SerializeToString(&message);
+
+        s_send (socket, message);
     }
   }
 }

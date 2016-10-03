@@ -6,7 +6,8 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "zmq.h"
+#include "zhelpers.hpp"
+#include "iobuffer.pb.h"
 
   class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
@@ -48,7 +49,12 @@ private:
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
 
-  std::size_t sharedMemorySize;
+  zmq::context_t context;
+  zmq::socket_t socket;
+  Array<const float*> nextInputBuffer;
+  Array<float*> nextOutputBuffer;
+  void prepareInputData(vstjs::IOBuffer* buffer);
+  void prepareOutputData(vstjs::IOBuffer* buffer);
 
   void getNextAudioBlock(AudioSampleBuffer *buffer, int numInputChannels, int numSamples);
 
