@@ -7,7 +7,8 @@
     "rebuild": "node-gyp rebuild --debug; node-gyp configure -- -f xcode",
     "start": "node-gyp build --debug && node vst-js.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "node-gyp rebuild"
+    "install": "node-gyp rebuild",
+    "protobuf": "protoc -I=shared/proto --cpp_out=shared/proto/build shared/proto/iobuffer.proto"
   },
   "author": "Dave Ramirez <ramirezd42@gmail.com>",
   "license": "ISC",

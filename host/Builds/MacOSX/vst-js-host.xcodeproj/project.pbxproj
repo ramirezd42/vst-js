@@ -12,6 +12,7 @@
 		3C1A7D60ADB88734C7F80DE2 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = 04A548B64067C25AABCFF5D2 /* RecentFilesMenuTemplate.nib */; };
 		46C32B6878C84F967F0B3309 /* DiscRecording.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC0725740D62575856B2EB2B /* DiscRecording.framework */; };
 		4EA6A935B1DC9B3E29D3D82F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F5814FEB1D8AD4ED1026AAA /* Cocoa.framework */; };
+		562AEE101D9EC293006B4C92 /* libprotobuf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 562AEE0F1D9EC293006B4C92 /* libprotobuf.a */; };
 		566A1AC41D6D3A780003645A /* juce_audio_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = 566A1AA61D6D3A780003645A /* juce_audio_basics.mm */; };
 		566A1AC61D6D3A780003645A /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = 566A1AA81D6D3A780003645A /* juce_audio_devices.mm */; };
 		566A1AC81D6D3A780003645A /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = 566A1AAA1D6D3A780003645A /* juce_audio_formats.mm */; };
@@ -29,6 +30,8 @@
 		566A1ADF1D6D3A780003645A /* ReadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = 566A1AC21D6D3A780003645A /* ReadMe.txt */; };
 		566A1AE11D6D3E9E0003645A /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 566A1AE01D6D3E9E0003645A /* AudioUnit.framework */; };
 		566A1AE31D6D3EA80003645A /* CoreAudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 566A1AE21D6D3EA80003645A /* CoreAudioKit.framework */; };
+		568189801D9F20930017F77D /* iobuffer.pb.cc in Sources */ = {isa = PBXBuildFile; fileRef = 5681897D1D9F20930017F77D /* iobuffer.pb.cc */; };
+		568189811D9F20930017F77D /* iobuffer.proto in Resources */ = {isa = PBXBuildFile; fileRef = 5681897F1D9F20930017F77D /* iobuffer.proto */; };
 		568A6A3A1D8F8C35006C7680 /* IPCAudioIODevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */; };
 		56CA02D21D9DF6920090334B /* libzmq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56CA02D11D9DF6920090334B /* libzmq.a */; };
 		79E68730456172968AA1F763 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF52CD2A0B41261A587E785 /* QTKit.framework */; };
@@ -50,6 +53,7 @@
 		211EFAE538408FE8C53F6996 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		3AF52CD2A0B41261A587E785 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		527CEEB362958E8976D03C0F /* MainComponent.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MainComponent.cpp; path = ../../Source/MainComponent.cpp; sourceTree = SOURCE_ROOT; };
+		562AEE0F1D9EC293006B4C92 /* libprotobuf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprotobuf.a; path = ../../../lib/libprotobuf.a; sourceTree = "<group>"; };
 		566A1AA41D6D3A780003645A /* AppConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppConfig.h; sourceTree = "<group>"; };
 		566A1AA51D6D3A780003645A /* juce_audio_basics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = juce_audio_basics.cpp; sourceTree = "<group>"; };
 		566A1AA61D6D3A780003645A /* juce_audio_basics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = juce_audio_basics.mm; sourceTree = "<group>"; };
@@ -83,6 +87,9 @@
 		566A1AC21D6D3A780003645A /* ReadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
 		566A1AE01D6D3E9E0003645A /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		566A1AE21D6D3EA80003645A /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		5681897D1D9F20930017F77D /* iobuffer.pb.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iobuffer.pb.cc; sourceTree = "<group>"; };
+		5681897E1D9F20930017F77D /* iobuffer.pb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iobuffer.pb.h; sourceTree = "<group>"; };
+		5681897F1D9F20930017F77D /* iobuffer.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = iobuffer.proto; sourceTree = "<group>"; };
 		568A6A391D8F8C35006C7680 /* IPCAudioIODevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IPCAudioIODevice.cpp; path = ../../Source/IPCAudioIODevice.cpp; sourceTree = "<group>"; };
 		568A6A3B1D8F8C8E006C7680 /* IPCAudioIODevice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = IPCAudioIODevice.h; path = ../../Source/IPCAudioIODevice.h; sourceTree = "<group>"; };
 		56CA02D11D9DF6920090334B /* libzmq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzmq.a; path = ../../../lib/libzmq.a; sourceTree = "<group>"; };
@@ -115,6 +122,7 @@
 				56CA02D21D9DF6920090334B /* libzmq.a in Frameworks */,
 				99C0D3219A97A8AA750B958D /* CoreAudio.framework in Frameworks */,
 				3992AFE650B8CDCD2497562D /* CoreMIDI.framework in Frameworks */,
+				562AEE101D9EC293006B4C92 /* libprotobuf.a in Frameworks */,
 				46C32B6878C84F967F0B3309 /* DiscRecording.framework in Frameworks */,
 				AA3BD4BA22D24471884B84E3 /* IOKit.framework in Frameworks */,
 				F65A4221875A5267D93D6832 /* OpenGL.framework in Frameworks */,
@@ -137,6 +145,7 @@
 				0DD83BB765496CE87FFD895C /* Resources */,
 				66C4163D685ABCBA56CE2E04 /* Frameworks */,
 				CFBEBD71A413CAB866AD02E1 /* Products */,
+				5681897B1D9F20930017F77D /* proto */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -189,10 +198,30 @@
 			path = ../../../shared/JuceLibraryCode;
 			sourceTree = "<group>";
 		};
+		5681897B1D9F20930017F77D /* proto */ = {
+			isa = PBXGroup;
+			children = (
+				5681897C1D9F20930017F77D /* build */,
+				5681897F1D9F20930017F77D /* iobuffer.proto */,
+			);
+			name = proto;
+			path = ../../../shared/proto;
+			sourceTree = "<group>";
+		};
+		5681897C1D9F20930017F77D /* build */ = {
+			isa = PBXGroup;
+			children = (
+				5681897D1D9F20930017F77D /* iobuffer.pb.cc */,
+				5681897E1D9F20930017F77D /* iobuffer.pb.h */,
+			);
+			path = build;
+			sourceTree = "<group>";
+		};
 		56CA02D01D9DF6890090334B /* lib */ = {
 			isa = PBXGroup;
 			children = (
 				56CA02D11D9DF6920090334B /* libzmq.a */,
+				562AEE0F1D9EC293006B4C92 /* libprotobuf.a */,
 			);
 			name = lib;
 			sourceTree = "<group>";
@@ -308,6 +337,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				566A1ADF1D6D3A780003645A /* ReadMe.txt in Resources */,
+				568189811D9F20930017F77D /* iobuffer.proto in Resources */,
 				3C1A7D60ADB88734C7F80DE2 /* RecentFilesMenuTemplate.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -331,6 +361,7 @@
 				566A1ADE1D6D3A780003645A /* juce_video.mm in Sources */,
 				566A1ACE1D6D3A780003645A /* juce_core.mm in Sources */,
 				566A1AD81D6D3A780003645A /* juce_gui_basics.mm in Sources */,
+				568189801D9F20930017F77D /* iobuffer.pb.cc in Sources */,
 				566A1ACC1D6D3A780003645A /* juce_audio_utils.mm in Sources */,
 				566A1AC81D6D3A780003645A /* juce_audio_formats.mm in Sources */,
 				566A1AD61D6D3A780003645A /* juce_graphics.mm in Sources */,
@@ -410,6 +441,8 @@
 					../../../include/JUCE/modules,
 					../../../include/zmq,
 					../../../shared/JuceLibraryCode,
+					../../../include,
+					../../../shared/proto/build,
 				);
 				INFOPLIST_FILE = "Info-App.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -443,6 +476,8 @@
 					../../../include/JUCE/modules,
 					../../../include/zmq,
 					../../../shared/JuceLibraryCode,
+					../../../include,
+					../../../shared/proto/build,
 				);
 				INFOPLIST_FILE = "Info-App.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
