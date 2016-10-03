@@ -51,10 +51,8 @@ private:
 
   zmq::context_t context;
   zmq::socket_t socket;
-  Array<const float*> nextInputBuffer;
-  Array<float*> nextOutputBuffer;
-  void prepareInputData(vstjs::IOBuffer* buffer);
-  void prepareOutputData(vstjs::IOBuffer* buffer);
+  void prepareInputData(vstjs::IOBuffer* buffer, float** dest);
+  void prepareOutputData(vstjs::IOBuffer* buffer, float** dest);
 
   void getNextAudioBlock(AudioSampleBuffer *buffer, int numInputChannels, int numSamples);
 

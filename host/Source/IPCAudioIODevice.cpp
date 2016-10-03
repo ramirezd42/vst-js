@@ -124,25 +124,19 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
   return 0;
 }
 
-void IPCAudioIODevice::prepareInputData(vstjs::IOBuffer* buffer) {
-  nextInputBuffer.clear();
+void IPCAudioIODevice::prepareInputData(vstjs::IOBuffer* buffer, float** destination) {
   for(int channel = 0; channel < buffer->numinputchannels(); ++channel) {
-    Array<float>* channelData = new Array<float>;
     for(int sample = 0; sample < buffer->samplesize(); ++sample) {
-      channelData->add(buffer->inputdata(channel * buffer->samplesize() + sample));
+      destination[channel][sample] = buffer->inputdata(channel * buffer->samplesize() + sample);
     }
-    nextInputBuffer.add(channelData->getRawDataPointer());
   }
 }
 
-void IPCAudioIODevice::prepareOutputData(vstjs::IOBuffer* buffer) {
-  nextOutputBuffer.clear();
+void IPCAudioIODevice::prepareOutputData(vstjs::IOBuffer* buffer, float** destination) {
   for(int channel = 0; channel < buffer->numoutputchannels(); ++channel) {
-    Array<float>* channelData = new Array<float>;
     for(int sample = 0; sample < buffer->samplesize(); ++sample) {
-      channelData->add(buffer->outputdata(channel * buffer->samplesize() + sample));
+      destination[channel][sample] = buffer->outputdata(channel * buffer->samplesize() + sample);
     }
-    nextOutputBuffer.add(channelData->getRawDataPointer());
   }
 }
   
@@ -155,27 +149,55 @@ void IPCAudioIODevice::run() {
       vstjs::IOBuffer nextBuffer;
       if(nextBuffer.ParseFromString(message) && isPlaying() && callback != nullptr) {
 
-        prepareInputData(&nextBuffer);
-        prepareOutputData(&nextBuffer);
+        // init i/o buffers
+        float** nextInputBuffer;
+        nextInputBuffer = new float*[nextBuffer.numinputchannels()];
+        for (int i = 0;i<nextBuffer.numinputchannels();i++) {
+          nextInputBuffer[i] = new float[nextBuffer.samplesize()];
+        }
+        prepareInputData(&nextBuffer, nextInputBuffer);
 
+
+        float** nextOutputBuffer;
+        nextOutputBuffer = new float*[nextBuffer.numoutputchannels()];
+        for (int i = 0;i<nextBuffer.numoutputchannels();i++) {
+          nextOutputBuffer[i] = new float[nextBuffer.samplesize()];
+        }
+        prepareOutputData(&nextBuffer, nextOutputBuffer);
+
+
+        // pass i/o data to audio device callback
         callback->audioDeviceIOCallback(
-          nextInputBuffer.getRawDataPointer(),
+          const_cast<const float**>(nextInputBuffer),
           nextBuffer.numinputchannels(),
-          nextOutputBuffer.getRawDataPointer(),
+          nextOutputBuffer,
           nextBuffer.numoutputchannels(),
           nextBuffer.samplesize()
         );
 
+        // copy new output data to protobuf object
         for(int channel = 0; channel < nextBuffer.numoutputchannels(); ++channel) {
           for (int sample = 0; sample < nextBuffer.samplesize(); ++sample) {
             nextBuffer.set_outputdata((channel * nextBuffer.samplesize()) + sample, nextOutputBuffer[channel][sample]);
           }
         }
 
+        // reserialize protobuf object and send back
         std::string message;
         nextBuffer.SerializeToString(&message);
 
         s_send (socket, message);
+
+        // clean up i/o buffer memory
+        for (int i = 0; i < nextBuffer.numinputchannels(); ++i) {
+          delete[] nextInputBuffer[i];
+        }
+        delete[] nextInputBuffer;
+
+        for (int i = 0; i < nextBuffer.numoutputchannels(); ++i) {
+          delete[] nextOutputBuffer[i];
+        }
+        delete[] nextOutputBuffer;
     }
   }
 }
