@@ -2,17 +2,26 @@
   "targets": [
     {
       "target_name": "vst-js",
+      "type": "executable",
       "include_dirs": [
         "src",
         "shared",
+        "shared/proto/build",
+        "shared/JuceLibraryCode",
+        "include",
         "include/JUCE/modules",
         "include/VST3",
+        "include/zmq",
         "<!(node -e \"require('nan')\")"
       ],
       "sources": [
-        "src/vst-js.cc",
+        "src/IPCAudioIODevice.cpp",
+        "src/MainComponent.cpp",
+        "src/Main.cpp",
+        "shared/proto/build/iobuffer.pb.cc",
         "shared/JuceLibraryCode/juce_audio_basics.mm",
         "shared/JuceLibraryCode/juce_audio_devices.mm",
+        "shared/JuceLibraryCode/juce_audio_formats.mm",
         "shared/JuceLibraryCode/juce_audio_processors.mm",
         "shared/JuceLibraryCode/juce_audio_utils.mm",
         "shared/JuceLibraryCode/juce_core.mm",
@@ -33,6 +42,8 @@
           ],
           'link_settings': {
             'libraries': [
+              '../lib/libprotobuf.a',
+              '../lib/libzmq.a',
               '$(SDKROOT)/System/Library/Frameworks/Accelerate.framework',
               '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
               '$(SDKROOT)/System/Library/Frameworks/AudioUnit.framework',
