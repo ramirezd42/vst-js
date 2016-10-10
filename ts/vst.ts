@@ -1,32 +1,33 @@
 export class PluginInstance {
+
   stop(): boolean {
-    return true;
+    return true
   }
 
   displayGUI(): boolean {
-    return true;
+    return true
   }
 
   hideGUI(): boolean {
-    return true;
+    return true
   }
 
-  processAudioBlock(inputBuffer: Array<number>, outputBuffer: Array<number>): boolean {
-    return true
+  processAudioBlock(inputBuffer: number[][]): number[][] {
+    return inputBuffer
   }
 }
 
 export class PluginHost {
  start(): boolean {
-   return true;
+   return true
  }
 
  stop(): boolean {
-   return true;
+   return true
  }
 
  launchPlugin(pluginPath: string): PluginInstance {
   // todo: implement stub
-  return new PluginInstance();
+  return new PluginInstance()
  }
 }
