@@ -2,14 +2,12 @@
   "name": "vst-js",
   "version": "0.0.0",
   "description": "",
-  "main": "build/js/vst.js",
   "scripts": {
     "rebuild": "node-gyp rebuild --debug; node-gyp configure -- -f xcode",
     "start": "node-gyp build --debug && node vst-js.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install": "node-gyp rebuild",
-    "protobuf": "protoc -I=shared/proto --cpp_out=shared/proto/build shared/proto/iobuffer.proto",
-    "ts": "tsc -d --outDir ./build/js --module commonjs ./ts/vst.ts"
+    "protobuf": "protoc -I=shared/proto --cpp_out=shared/proto/build shared/proto/iobuffer.proto"
   },
   "author": "Dave Ramirez <ramirezd42@gmail.com>",
   "license": "ISC",
@@ -18,6 +16,6 @@
     "nan": "^2.4.0"
   },
   "devDependencies": {
-    "typescript": "^2.0.3"
+    "web-audio-api": "^0.2.2"
   }
 }

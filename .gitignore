@@ -8,3 +8,4 @@ host/Builds/MacOSX/vst-js-host.xcodeproj/project.xcworkspace
 host/Builds/MacOSX/vst-js-host.xcodeproj/xcuserdata
 shared/
 node_modules/
+*.wav

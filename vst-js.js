@@ -1,52 +1,71 @@
 const vstjs = require('./build/Debug/vst-js.node')
+const AudioContext = require('web-audio-api').AudioContext
+  , Speaker = require('speaker')
+
+const fs = require('fs')
+
 const bufferSize = 4096
 const numInputChannels = 2
 const numOutputChannels = 2
 
-const AudioContext = require('web-audio-api').AudioContext
-const audioCtx = new AudioContext()
-const scriptNode = audioCtx.createScriptProcessor('/Library/Audio/Plug-Ins/VST3', bufferSize, numInputChannels, numOutputChannels)
-const pluginInstance = vstjs.launchPlugin('./build/Debug/vst-js.node', bufferSize, numInputChannels, numOutputChannels)
+// setup webaudio stuff
+const audioContext = new AudioContext
+var sourceNode = audioContext.createBufferSource();
+const scriptNode = audioContext.createScriptProcessor(bufferSize, numInputChannels, numOutputChannels)
+
+audioContext.outStream = new Speaker({
+  channels: audioContext.format.numberOfChannels,
+  bitDepth: audioContext.format.bitDepth,
+  sampleRate: audioContext.sampleRate
+})
+
+sourceNode.connect(scriptNode)
+scriptNode.connect(audioContext.destination)
+
+// launch a new plugin Process
+const host = vstjs.createHost()
+host.start()
+
+const instance = host.launchPlugin('/Library/Audio/Plug-Ins/VST3')
+
+// display gui window to user
+instance.displayGUI()
 
 scriptNode.onaudioprocess = function(audioProcessingEvent) {
-  const inputBuffer = [].concat.apply([], audioProcessingEvent.inputBuffer)
-  const outputBuffer = [].concat.apply([], audioProcessingEvent.outputBuffer)
-  pluginInstance.processAudio(inputBuffer, outputBuffer)
+  // The input buffer is the song we loaded earlier
+  var inputBuffer = audioProcessingEvent.inputBuffer
+
+  // The output buffer contains the samples that will be modified and played
+  audioProcessingEvent.outputBuffer = instance.processAudioBlock(inputBuffer)
+
+  // // Loop through the output channels (in this case there is only one)
+  // for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+  //   var inputData = inputBuffer.getChannelData(channel);
+  //   var outputData = outputBuffer.getChannelData(channel);
+
+  //   // Loop through the 4096 samples
+  //   for (var sample = 0; sample < inputBuffer.length; sample++) {
+  //     // make output equal to the same as the input
+  //     outputData[sample] = inputData[sample];
+  //   }
+  // }
 }
 
-scriptNode.onaudioprocess = function(audioProcessingEvent) {
-  const inputBuffer = audioProcessingEvent.inputBuffer;
-  let outputBuffer = audioProcessingEvent.outputBuffer;
-}
+fs.readFile(__dirname + '/test.wav', function(err, fileBuf) {
+  console.log('reading file..')
+  if (err) throw err
+  audioContext.decodeAudioData(fileBuf, function (audioBuffer) {
+    console.log(sourceNode)
+    sourceNode.buffer = audioBuffer
+    sourceNode.start(0)
+  }, function (err) { throw err })
+})
 
-pluginInstance.start()
-pluginInstance.displayGUI()
-pluginInstance.hideGUI()
-pluginInstance.stop()
-pluginInstance.destroy()
+// hide gui window (processing will still happen)
+instance.hideGUI()
 
-// const vstjs = require('./build/Debug/vst-js.node');
-// console.log(vstjs);
-// const list = new vstjs.PluginList('/Library/Audio/Plug-Ins/VST3');
-//
-// const bufferSize = 4096;
-// const numInputChannels = 2;
-// const numOutputChannels = 2;
-// const audioCtx = new AudioContext();
-//
-// list.getPlugins(pluginList => {
-//   const pluginDescription = pluginList[0]
-//   const pluginInstance = pluginDescription.createInstance(bufferSize, numInputChannels, numOutputChannels)
-//   var scriptNode = audioCtx.createScriptProcessor(bufferSize, numInputChannels, numOutputChannels);
-//
-//   scriptNode.onaudioprocess = function(audioProcessingEvent) {
-//     const inputBuffer = [].concat.apply([], audioProcessingEvent.inputBuffer);
-//     const outputBuffer = [].concat.apply([], audioProcessingEvent.outputBuffer);
-//     pluginInstance.processAudio(inputBuffer, outputBuffer)
-//   }
-//
-//   pluginInstance.displayGUI()
-//
-// );
-//
-// setInterval(_ => console.log('ah ah ah ah stayin alive, stayin alive'), 1000)
+// stop plugin instance when you're done
+instance.stop()
+
+// stop plugin host when you're done
+host.stop()
