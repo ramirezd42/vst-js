@@ -1,6 +1,7 @@
 #ifndef PLUGINHOST_H
 #define PLUGINHOST_H
 
+#include "../../shared/JuceLibraryCode/JuceHeader.h"
 #include <nan.h>
 
 class PluginHost : public Nan::ObjectWrap {
@@ -10,6 +11,7 @@ public:
   static void Start(const Nan::FunctionCallbackInfo<v8::Value> &info);
   static void Stop(const Nan::FunctionCallbackInfo<v8::Value> &info);
   static void LaunchPlugin(const Nan::FunctionCallbackInfo<v8::Value> &info);
+  juce::ChildProcess proc;
 
 private:
   PluginHost();

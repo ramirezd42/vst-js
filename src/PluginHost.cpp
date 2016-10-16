@@ -30,10 +30,14 @@ void PluginHost::Init() {
 }
 
 void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
+  PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
+  obj->proc.start("/Users/dxr224/Projects/vst-js/build/Release/vst-js-bin");
   info.GetReturnValue().Set(Nan::New("Host Started...").ToLocalChecked());
 }
 
 void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
+  PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
+  obj->proc.kill();
   info.GetReturnValue().Set(Nan::New("Host Stopped...").ToLocalChecked());
 }
 

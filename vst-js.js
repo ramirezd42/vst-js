@@ -68,4 +68,4 @@ instance.hideGUI()
 instance.stop()
 
 // stop plugin host when you're done
-host.stop()
+setTimeout(() => host.stop(), 5000)
