@@ -3,6 +3,8 @@
 #define PLUGINHOST_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
+#include "iobuffer.pb.h"
+#include "zhelpers.hpp"
 #include <nan.h>
 
 class PluginHost : public Nan::ObjectWrap {
@@ -14,6 +16,8 @@ public:
   juce::ChildProcess proc;
   static void
   ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
+  zmq::context_t context;
+  zmq::socket_t socket;
 
 private:
   PluginHost();

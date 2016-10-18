@@ -1,10 +1,11 @@
 #include "PluginHost.h"
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
+#include "zhelpers.hpp"
 #include <nan.h>
 
 using namespace v8;
 
-PluginHost::PluginHost(){};
+PluginHost::PluginHost() : context(1), socket(this->context, ZMQ_REQ){};
 PluginHost::~PluginHost(){};
 
 Nan::Persistent<v8::Function> PluginHost::constructor;
@@ -53,6 +54,13 @@ void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
 
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
   StringArray args;
+
+  // connect socket to requested address
+  std::cout << "Socket Address: " << std::endl;
+  obj->socket.connect(socketAddress.toRawUTF8());
+
+  // launch child process, with specified plugin
+  // listening on specified socket address
   args.add("/Users/dxr224/Projects/vst-js/build/Debug/vst-js-bin");
   args.add(pluginPath);
   args.add(socketAddress);
