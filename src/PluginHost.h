@@ -18,9 +18,10 @@ public:
   ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
   zmq::context_t context;
   zmq::socket_t socket;
+  String socketAddress;
 
 private:
-  PluginHost();
+  PluginHost(String _socketAddress);
   ~PluginHost();
 
   static Nan::Persistent<v8::Function> constructor;

@@ -5,7 +5,9 @@
 
 using namespace v8;
 
-PluginHost::PluginHost() : context(1), socket(this->context, ZMQ_REQ){};
+PluginHost::PluginHost(juce::String _socketAddress)
+    : context(1), socket(this->context, ZMQ_REQ),
+      socketAddress(_socketAddress){};
 PluginHost::~PluginHost(){};
 
 Nan::Persistent<v8::Function> PluginHost::constructor;
@@ -31,7 +33,7 @@ void PluginHost::Init() {
 }
 
 void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
-  if (info.Length() < 2) {
+  if (info.Length() < 1) {
     Nan::ThrowTypeError("Wrong number of arguments. Expected 1 argument");
     return;
   }
@@ -41,29 +43,21 @@ void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
     return;
   }
 
-  if (!info[1]->IsString()) {
-    Nan::ThrowTypeError("Incorrect Type for Argument 2. Expected String");
-    return;
-  }
-
   v8::String::Utf8Value param1(info[0]->ToString());
   juce::String pluginPath = std::string(*param1);
-
-  v8::String::Utf8Value param2(info[1]->ToString());
-  juce::String socketAddress = std::string(*param2);
 
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
   StringArray args;
 
   // connect socket to requested address
   std::cout << "Socket Address: " << std::endl;
-  obj->socket.connect(socketAddress.toRawUTF8());
+  obj->socket.connect(obj->socketAddress.toRawUTF8());
 
   // launch child process, with specified plugin
   // listening on specified socket address
   args.add("/Users/dxr224/Projects/vst-js/build/Debug/vst-js-bin");
   args.add(pluginPath);
-  args.add(socketAddress);
+  args.add(obj->socketAddress);
   obj->proc.start(args);
   info.GetReturnValue().Set(Nan::New("Host Started...").ToLocalChecked());
 }
@@ -75,7 +69,20 @@ void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
 }
 
 void PluginHost::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
-  PluginHost *obj = new PluginHost();
+  if (info.Length() < 1) {
+    Nan::ThrowTypeError("Wrong number of arguments. Expected 1 argument");
+    return;
+  }
+
+  if (!info[0]->IsString()) {
+    Nan::ThrowTypeError("Incorrect Type for Argument 1. Expected String");
+    return;
+  }
+
+  v8::String::Utf8Value param1(info[0]->ToString());
+  juce::String socketAddress = std::string(*param1);
+
+  PluginHost *obj = new PluginHost(socketAddress);
   obj->Wrap(info.This());
   info.GetReturnValue().Set(info.This());
 }
@@ -98,9 +105,8 @@ void PluginHost::ProcessAudioBlock(
 
 v8::Local<v8::Object> PluginHost::NewInstance(v8::Local<v8::Value> arg) {
   Nan::EscapableHandleScope scope;
-
-  const unsigned argc = 0;
-  v8::Local<v8::Value> argv[argc] = {};
+  const unsigned argc = 1;
+  v8::Local<v8::Value> argv[argc] = {arg};
   v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
   v8::Local<v8::Object> instance = cons->NewInstance(argc, argv);
 
