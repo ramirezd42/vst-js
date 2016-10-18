@@ -65,6 +65,7 @@ void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
 void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
   obj->proc.kill();
+  obj->socket.disconnect(obj->socketAddress.toRawUTF8());
   info.GetReturnValue().Set(Nan::New("Host Stopped...").ToLocalChecked());
 }
 
