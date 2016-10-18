@@ -6,6 +6,7 @@ include/JUCE
 host/Builds/MacOSX/.idea
 host/Builds/MacOSX/vst-js-host.xcodeproj/project.xcworkspace
 host/Builds/MacOSX/vst-js-host.xcodeproj/xcuserdata
+npm-debug.log
 shared/
 node_modules/
 *.wav
