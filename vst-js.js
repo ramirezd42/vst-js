@@ -24,7 +24,7 @@ scriptNode.connect(audioContext.destination)
 
 // launch a new plugin Process
 const host = vstjs.createHost()
-host.start('/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3')
+host.start('/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3', 'tcp://127.0.0.1:5560')
 
 scriptNode.onaudioprocess = function(audioProcessingEvent) {
   // The input buffer is the song we loaded earlier

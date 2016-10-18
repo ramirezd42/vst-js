@@ -6,12 +6,12 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "zhelpers.hpp"
 #include "iobuffer.pb.h"
+#include "zhelpers.hpp"
 
-  class IPCAudioIODevice : public AudioIODevice, private Thread {
+class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
-  IPCAudioIODevice(const String &deviceName);
+  IPCAudioIODevice(const String &deviceName, const String _socketAddress);
   ~IPCAudioIODevice() {}
   StringArray getOutputChannelNames() override { return *inputChannelNames; };
   StringArray getInputChannelNames() override { return *outputChannelNames; };
@@ -48,14 +48,15 @@ private:
   ScopedPointer<Array<int>> bufferSizes;
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
+  const String socketAddress;
 
   zmq::context_t context;
   zmq::socket_t socket;
-  void prepareInputData(vstjs::IOBuffer* buffer, float** dest);
-  void prepareOutputData(vstjs::IOBuffer* buffer, float** dest);
+  void prepareInputData(vstjs::IOBuffer *buffer, float **dest);
+  void prepareOutputData(vstjs::IOBuffer *buffer, float **dest);
 
-  void getNextAudioBlock(AudioSampleBuffer *buffer, int numInputChannels, int numSamples);
-
+  void getNextAudioBlock(AudioSampleBuffer *buffer, int numInputChannels,
+                         int numSamples);
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
@@ -66,7 +67,8 @@ private:
 
 class IPCAudioIODeviceType : public AudioIODeviceType {
 public:
-  IPCAudioIODeviceType() : AudioIODeviceType("IPC") {
+  IPCAudioIODeviceType(const String _socketAddress)
+      : socketAddress(_socketAddress), AudioIODeviceType("IPC") {
     deviceNames = new StringArray();
     deviceNames->add("default");
   }
@@ -82,11 +84,12 @@ public:
   bool hasSeparateInputsAndOutputs() const override { return false; }
   AudioIODevice *createDevice(const String &outputDeviceName,
                               const String &inputDeviceName) override {
-    return new IPCAudioIODevice(deviceNames->getReference(0));
+    return new IPCAudioIODevice(deviceNames->getReference(0), socketAddress);
   }
 
 private:
   ScopedPointer<StringArray> deviceNames;
+  const String socketAddress;
 };
 
 #endif // VST_JS_HOST_IPCAUDIOIODEVICE_H

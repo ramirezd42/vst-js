@@ -30,23 +30,32 @@ void PluginHost::Init() {
 }
 
 void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
-  if (info.Length() < 1) {
+  if (info.Length() < 2) {
     Nan::ThrowTypeError("Wrong number of arguments. Expected 1 argument");
     return;
   }
 
   if (!info[0]->IsString()) {
-    Nan::ThrowTypeError("Wrong argument. Expected String");
+    Nan::ThrowTypeError("Incorrect Type for Argument 1. Expected String");
+    return;
+  }
+
+  if (!info[1]->IsString()) {
+    Nan::ThrowTypeError("Incorrect Type for Argument 2. Expected String");
     return;
   }
 
   v8::String::Utf8Value param1(info[0]->ToString());
   juce::String pluginPath = std::string(*param1);
 
+  v8::String::Utf8Value param2(info[1]->ToString());
+  juce::String socketAddress = std::string(*param2);
+
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
   StringArray args;
   args.add("/Users/dxr224/Projects/vst-js/build/Debug/vst-js-bin");
   args.add(pluginPath);
+  args.add(socketAddress);
   obj->proc.start(args);
   info.GetReturnValue().Set(Nan::New("Host Started...").ToLocalChecked());
 }

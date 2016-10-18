@@ -32,7 +32,9 @@ public:
     // This method is where you should put your application's initialisation
     // code..
     StringArray params = this->getCommandLineParameterArray();
-    mainWindow = new MainWindow("Plugin Host", params[0]);
+    String pluginPath = params[0];
+    String socketAddress = params[1];
+    mainWindow = new MainWindow("Plugin Host", pluginPath, socketAddress);
   }
 
   void shutdown() override {
@@ -62,7 +64,7 @@ public:
   */
   class MainWindow : public DocumentWindow {
   public:
-    MainWindow(String name, String pluginPath)
+    MainWindow(String name, String pluginPath, String socketAddress)
         : DocumentWindow(name, Colours::lightgrey, DocumentWindow::allButtons) {
       formatManager.addDefaultFormats();
       setUsingNativeTitleBar(true);
@@ -88,7 +90,7 @@ public:
       ScopedPointer<XmlElement> savedAudioState =
           appProperties->getUserSettings()->getXmlValue("audioDeviceState");
 
-      IPCAudioIODeviceType *ipcType = new IPCAudioIODeviceType();
+      IPCAudioIODeviceType *ipcType = new IPCAudioIODeviceType(socketAddress);
       deviceManager.addAudioDeviceType(ipcType);
       if (deviceManager.getCurrentAudioDeviceType() != "IPC") {
         deviceManager.setCurrentAudioDeviceType("IPC", true);
