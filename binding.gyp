@@ -89,7 +89,6 @@
         "src/MainComponent.cpp",
         "src/Module.cpp",
         "src/PluginHost.cpp",
-        "src/PluginInstance.cpp",
         "shared/proto/build/iobuffer.pb.cc",
         "shared/JuceLibraryCode/juce_audio_basics.mm",
         "shared/JuceLibraryCode/juce_audio_devices.mm",

@@ -24,19 +24,14 @@ scriptNode.connect(audioContext.destination)
 
 // launch a new plugin Process
 const host = vstjs.createHost()
-host.start()
-
-const instance = host.launchPlugin('/Library/Audio/Plug-Ins/VST3')
-
-// display gui window to user
-instance.displayGUI()
+host.start('/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3')
 
 scriptNode.onaudioprocess = function(audioProcessingEvent) {
   // The input buffer is the song we loaded earlier
   var inputBuffer = audioProcessingEvent.inputBuffer
 
   // The output buffer contains the samples that will be modified and played
-  audioProcessingEvent.outputBuffer = instance.processAudioBlock(inputBuffer)
+  audioProcessingEvent.outputBuffer = host.processAudioBlock(inputBuffer)
 
   // // Loop through the output channels (in this case there is only one)
   // for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
@@ -60,12 +55,6 @@ fs.readFile(__dirname + '/test.wav', function(err, fileBuf) {
     sourceNode.start(0)
   }, function (err) { throw err })
 })
-
-// hide gui window (processing will still happen)
-instance.hideGUI()
-
-// stop plugin instance when you're done
-instance.stop()
 
 // stop plugin host when you're done
 setTimeout(() => host.stop(), 5000)

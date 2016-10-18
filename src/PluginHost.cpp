@@ -1,5 +1,5 @@
 #include "PluginHost.h"
-#include "PluginInstance.h"
+#include "../../shared/JuceLibraryCode/JuceHeader.h"
 #include <nan.h>
 
 using namespace v8;
@@ -23,15 +23,31 @@ void PluginHost::Init() {
       tpl, "stop", Nan::New<v8::FunctionTemplate>(Stop)->GetFunction());
 
   Nan::SetPrototypeTemplate(
-      tpl, "launchPlugin",
-      Nan::New<v8::FunctionTemplate>(LaunchPlugin)->GetFunction());
+      tpl, "processAudioBlock",
+      Nan::New<v8::FunctionTemplate>(ProcessAudioBlock)->GetFunction());
 
   constructor.Reset(tpl->GetFunction());
 }
 
 void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
+  if (info.Length() < 1) {
+    Nan::ThrowTypeError("Wrong number of arguments. Expected 1 argument");
+    return;
+  }
+
+  if (!info[0]->IsString()) {
+    Nan::ThrowTypeError("Wrong argument. Expected String");
+    return;
+  }
+
+  v8::String::Utf8Value param1(info[0]->ToString());
+  juce::String pluginPath = std::string(*param1);
+
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
-  obj->proc.start("/Users/dxr224/Projects/vst-js/build/Release/vst-js-bin");
+  StringArray args;
+  args.add("/Users/dxr224/Projects/vst-js/build/Debug/vst-js-bin");
+  args.add(pluginPath);
+  obj->proc.start(args);
   info.GetReturnValue().Set(Nan::New("Host Started...").ToLocalChecked());
 }
 
@@ -41,15 +57,26 @@ void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   info.GetReturnValue().Set(Nan::New("Host Stopped...").ToLocalChecked());
 }
 
-void PluginHost::LaunchPlugin(
-    const Nan::FunctionCallbackInfo<v8::Value> &info) {
-  info.GetReturnValue().Set(PluginInstance::NewInstance(info[0]));
-}
-
 void PluginHost::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHost *obj = new PluginHost();
   obj->Wrap(info.This());
   info.GetReturnValue().Set(info.This());
+}
+
+void PluginHost::ProcessAudioBlock(
+    const Nan::FunctionCallbackInfo<v8::Value> &info) {
+  if (info.Length() < 1) {
+    Nan::ThrowTypeError("Wrong number of arguments. Expected 1 argument");
+    return;
+  }
+
+  // if (!info[0]->IsArray()) {
+  //   Nan::ThrowTypeError("Wrong argument. Expected float[][]");
+  //   return;
+  // }
+
+  // just pass the input buffer as the output buffer for now (no-op)
+  info.GetReturnValue().Set(info[0]);
 }
 
 v8::Local<v8::Object> PluginHost::NewInstance(v8::Local<v8::Value> arg) {
