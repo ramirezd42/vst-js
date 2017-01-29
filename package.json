@@ -3,19 +3,23 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "rebuild": "node-gyp rebuild --debug; node-gyp configure -- -f xcode",
-    "start": "node-gyp build --debug && node vst-js.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "node-gyp rebuild",
-    "protobuf": "protoc -I=shared/proto --cpp_out=shared/proto/build shared/proto/iobuffer.proto"
+    "install": "cmake-js compile",
+    "protobuf": "protoc -I=shared/proto --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin --grpc_out=shared/proto/build --cpp_out=shared/proto/build shared/proto/iobuffer.proto"
   },
   "author": "Dave Ramirez <ramirezd42@gmail.com>",
   "license": "ISC",
   "gypfile": true,
   "dependencies": {
-    "nan": "^2.4.0"
+    "grpc": "^1.0.1",
+    "nan": "^2.4.0",
+    "protobufjs": "^6.6.2",
+    "sync": "^0.2.5",
+    "zmq": "^2.15.3"
   },
   "devDependencies": {
+    "node-core-audio": "^0.5.1",
+    "speaker": "^0.3.0",
+    "wav": "^1.0.1",
     "web-audio-api": "^0.2.2"
   }
 }

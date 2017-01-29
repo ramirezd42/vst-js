@@ -13,7 +13,6 @@ public:
   static v8::Local<v8::Object> NewInstance(v8::Local<v8::Value> arg);
   static void Start(const Nan::FunctionCallbackInfo<v8::Value> &info);
   static void Stop(const Nan::FunctionCallbackInfo<v8::Value> &info);
-  juce::ChildProcess proc;
   static void
   ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
   zmq::context_t context;

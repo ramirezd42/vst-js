@@ -4,7 +4,7 @@
       "target_name": "vst-js-bin",
       "type": "executable",
       "include_dirs": [
-        "src",
+        "src/host",
         "shared",
         "shared/proto/build",
         "shared/JuceLibraryCode",
@@ -15,9 +15,9 @@
         "<!(node -e \"require('nan')\")"
       ],
       "sources": [
-        "src/IPCAudioIODevice.cpp",
-        "src/MainComponent.cpp",
-        "src/Main.cpp",
+        "src/host/IPCAudioIODevice.cpp",
+        "src/host/MainComponent.cpp",
+        "src/host/Main.cpp",
         "shared/proto/build/iobuffer.pb.cc",
         "shared/JuceLibraryCode/juce_audio_basics.mm",
         "shared/JuceLibraryCode/juce_audio_devices.mm",
@@ -62,6 +62,7 @@
             ]
           },
           'xcode_settings': {
+            'LIBRARY_SEARCH_PATHS': [ "$(inherited)", "$(SRCROOT)/lib" ],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             "OTHER_CPLUSPLUSFLAGS" : [ "-std=c++11", "-stdlib=libc++" ],
@@ -74,7 +75,7 @@
     {
       "target_name": "vst-js",
       "include_dirs": [
-        "src",
+        "src/module",
         "shared",
         "shared/proto/build",
         "shared/JuceLibraryCode",
@@ -85,10 +86,8 @@
         "<!(node -e \"require('nan')\")"
       ],
       "sources": [
-        "src/IPCAudioIODevice.cpp",
-        "src/MainComponent.cpp",
-        "src/Module.cpp",
-        "src/PluginHost.cpp",
+        "src/module/Module.cpp",
+        "src/module/PluginHost.cpp",
         "shared/proto/build/iobuffer.pb.cc",
         "shared/JuceLibraryCode/juce_audio_basics.mm",
         "shared/JuceLibraryCode/juce_audio_devices.mm",
@@ -133,6 +132,7 @@
             ]
           },
           'xcode_settings': {
+            'LIBRARY_SEARCH_PATHS': [ "$(inherited)", "$(SRCROOT)/lib" ],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             "OTHER_CPLUSPLUSFLAGS" : [ "-std=c++11", "-stdlib=libc++" ],

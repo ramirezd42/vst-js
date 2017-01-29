@@ -6,8 +6,9 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "iobuffer.pb.h"
+#include "iobuffer.grpc.pb.h"
 #include "zhelpers.hpp"
+#include <grpc++/grpc++.h>
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
@@ -51,12 +52,8 @@ private:
   const String socketAddress;
 
   zmq::context_t context;
-  zmq::socket_t socket;
-  void prepareInputData(vstjs::IOBuffer *buffer, float **dest);
-  void prepareOutputData(vstjs::IOBuffer *buffer, float **dest);
-
-  void getNextAudioBlock(AudioSampleBuffer *buffer, int numInputChannels,
-                         int numSamples);
+  void prepareInputData(vstjs::AudioBlock *buffer, float **dest);
+  void prepareOutputData(vstjs::AudioBlock *buffer, float **dest);
 
   bool deviceIsOpen;
   bool deviceIsPlaying;

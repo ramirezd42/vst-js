@@ -120,6 +120,10 @@ class RepeatedField {
 
   const Element& Get(int index) const;
   Element* Mutable(int index);
+
+  const Element& operator[](int index) const { return Get(index); }
+  Element& operator[](int index) { return *Mutable(index); }
+
   void Set(int index, const Element& value);
   void Add(const Element& value);
   Element* Add();
@@ -134,6 +138,7 @@ class RepeatedField {
 
   void Clear();
   void MergeFrom(const RepeatedField& other);
+  void UnsafeMergeFrom(const RepeatedField& other);
   void CopyFrom(const RepeatedField& other);
 
   // Reserve space to expand the field to at least the given size.  If the
@@ -284,7 +289,12 @@ class RepeatedField {
         e->Element::~Element();
       }
       if (rep->arena == NULL) {
-        delete[] reinterpret_cast<char*>(rep);
+#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
+        const size_t bytes = size * sizeof(*e) + kRepHeaderSize;
+        ::operator delete(static_cast<void*>(rep), bytes);
+#else
+        ::operator delete(static_cast<void*>(rep));
+#endif
       }
     }
   }
@@ -564,12 +574,16 @@ class GenericTypeHandler {
     return ::google::protobuf::Arena::CreateMaybeMessage<Type>(
         arena, static_cast<GenericType*>(0));
   }
-  // We force NewFromPrototype() and Delete() to be non-inline to reduce code
-  // size: else, several other methods get inlined copies of message types'
-  // constructors and destructors.
+  // We force NewFromPrototype() to be non-inline to reduce code size:
+  // else, several other methods get inlined copies of message types'
+  // constructors.
   GOOGLE_ATTRIBUTE_NOINLINE static GenericType* NewFromPrototype(
       const GenericType* prototype, ::google::protobuf::Arena* arena = NULL);
-  GOOGLE_ATTRIBUTE_NOINLINE static void Delete(GenericType* value, Arena* arena);
+  static inline void Delete(GenericType* value, Arena* arena) {
+    if (arena == NULL) {
+      delete value;
+    }
+  }
   static inline ::google::protobuf::Arena* GetArena(GenericType* value) {
     return ::google::protobuf::Arena::GetArena<Type>(value);
   }
@@ -592,12 +606,6 @@ template <typename GenericType>
 GenericType* GenericTypeHandler<GenericType>::NewFromPrototype(
     const GenericType* /* prototype */, ::google::protobuf::Arena* arena) {
   return New(arena);
-}
-template <typename GenericType>
-void GenericTypeHandler<GenericType>::Delete(GenericType* value, Arena* arena) {
-  if (arena == NULL) {
-    delete value;
-  }
 }
 template <typename GenericType>
 void GenericTypeHandler<GenericType>::Merge(const GenericType& from,
@@ -744,6 +752,9 @@ class RepeatedPtrField : public internal::RepeatedPtrFieldBase {
   Element* Mutable(int index);
   Element* Add();
 
+  const Element& operator[](int index) const { return Get(index); }
+  Element& operator[](int index) { return *Mutable(index); }
+
   // Remove the last element in the array.
   // Ownership of the element is retained by the array.
   void RemoveLast();
@@ -755,6 +766,7 @@ class RepeatedPtrField : public internal::RepeatedPtrFieldBase {
 
   void Clear();
   void MergeFrom(const RepeatedPtrField& other);
+  void UnsafeMergeFrom(const RepeatedPtrField& other) { MergeFrom(other); }
   void CopyFrom(const RepeatedPtrField& other);
 
   // Reserve space to expand the field to at least the given size.  This only
@@ -1140,14 +1152,19 @@ inline void RepeatedField<Element>::Clear() {
 }
 
 template <typename Element>
-inline void RepeatedField<Element>::MergeFrom(const RepeatedField& other) {
-  GOOGLE_CHECK_NE(&other, this);
+inline void RepeatedField<Element>::UnsafeMergeFrom(const RepeatedField& other) {
   if (other.current_size_ != 0) {
     Reserve(current_size_ + other.current_size_);
     CopyArray(rep_->elements + current_size_,
               other.rep_->elements, other.current_size_);
     current_size_ += other.current_size_;
   }
+}
+
+template <typename Element>
+inline void RepeatedField<Element>::MergeFrom(const RepeatedField& other) {
+  GOOGLE_CHECK_NE(&other, this);
+  UnsafeMergeFrom(other);
 }
 
 template <typename Element>
@@ -1267,13 +1284,12 @@ void RepeatedField<Element>::Reserve(int new_size) {
            (std::numeric_limits<size_t>::max() - kRepHeaderSize) /
            sizeof(Element))
       << "Requested size is too large to fit into size_t.";
+  size_t bytes = kRepHeaderSize + sizeof(Element) * new_size;
   if (arena == NULL) {
-    rep_ = reinterpret_cast<Rep*>(
-        new char[kRepHeaderSize + sizeof(Element) * new_size]);
+    rep_ = static_cast<Rep*>(::operator new(bytes));
   } else {
     rep_ = reinterpret_cast<Rep*>(
-            ::google::protobuf::Arena::CreateArray<char>(arena,
-                kRepHeaderSize + sizeof(Element) * new_size));
+            ::google::protobuf::Arena::CreateArray<char>(arena, bytes));
   }
   rep_->arena = arena;
   int old_total_size = total_size_;
@@ -1359,13 +1375,18 @@ inline RepeatedPtrFieldBase::RepeatedPtrFieldBase(::google::protobuf::Arena* are
 
 template <typename TypeHandler>
 void RepeatedPtrFieldBase::Destroy() {
-  if (rep_ != NULL) {
-    for (int i = 0; i < rep_->allocated_size; i++) {
-      TypeHandler::Delete(cast<TypeHandler>(rep_->elements[i]), arena_);
+  if (rep_ != NULL && arena_ == NULL) {
+    int n = rep_->allocated_size;
+    void* const* elements = rep_->elements;
+    for (int i = 0; i < n; i++) {
+      TypeHandler::Delete(cast<TypeHandler>(elements[i]), NULL);
     }
-    if (arena_ == NULL) {
-      delete [] reinterpret_cast<char*>(rep_);
-    }
+#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
+    const size_t size = total_size_ * sizeof(elements[0]) + kRepHeaderSize;
+    ::operator delete(static_cast<void*>(rep_), size);
+#else
+    ::operator delete(static_cast<void*>(rep_));
+#endif
   }
   rep_ = NULL;
 }
@@ -2365,7 +2386,7 @@ template<typename T> class RepeatedPtrFieldBackInsertIterator
   RepeatedPtrField<T>* field_;
 };
 
-// A back inserter for RepeatedPtrFields that inserts by transfering ownership
+// A back inserter for RepeatedPtrFields that inserts by transferring ownership
 // of a pointer.
 template<typename T> class AllocatedRepeatedPtrFieldBackInsertIterator
     : public std::iterator<std::output_iterator_tag, T> {
