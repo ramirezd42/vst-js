@@ -70,4 +70,5 @@ target_link_libraries(
         ${JUCE_PLATFORM_SPECIFIC_LIBRARIES}
         ${CMAKE_SOURCE_DIR}/lib/libprotobuf.a
         ${CMAKE_SOURCE_DIR}/lib/libzmq.a
+        /Users/dxr224/Projects/grpc/libs/opt/libgrpc++.dylib
 )

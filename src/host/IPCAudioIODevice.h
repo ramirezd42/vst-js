@@ -52,7 +52,6 @@ private:
   ScopedPointer<AudioIODeviceCallback> callback;
 
   ScopedPointer<grpc::ServerBuilder> serverBuilder;
-  ScopedPointer<RpcAudioService> rpcAudioService;
   std::unique_ptr<grpc::Server> serviceInstance;
 
   const String socketAddress;

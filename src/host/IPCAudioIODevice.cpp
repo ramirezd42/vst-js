@@ -3,16 +3,11 @@
 //
 
 #include "IPCAudioIODevice.h"
-#include <grpc++/grpc++.h>
-#include "zhelpers.hpp"
-#include <vector>
 using vstjs::RpcAudioIO;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-
-
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
                                    const String _socketAddress)
@@ -48,7 +43,7 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels,
 
   //start listening on socket address and register rpc service
   serverBuilder->AddListeningPort(socketAddress.toRawUTF8(), grpc::InsecureServerCredentials());
-  serverBuilder->RegisterService(this->rpcAudioService);
+  serverBuilder->RegisterService(this);
   serviceInstance = serverBuilder->BuildAndStart();
   std::cout << "Server listening on " << socketAddress.toRawUTF8() << std::endl;
   return "";
@@ -57,10 +52,7 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels,
 void IPCAudioIODevice::close() {
   // TODO: implement stub
   this->deviceIsOpen = false;
-
   deviceIsOpen = false;
-  serviceInstance->Shutdown();
-  delete serviceInstance;
 }
 
 bool IPCAudioIODevice::isOpen() {
