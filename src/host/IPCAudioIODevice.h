@@ -10,7 +10,7 @@
 #include "zhelpers.hpp"
 #include <grpc++/grpc++.h>
 
-class IPCAudioIODevice : public AudioIODevice, private Thread {
+class IPCAudioIODevice : public AudioIODevice, public vstjs::RpcAudioIO::Service {
 public:
   IPCAudioIODevice(const String &deviceName, const String _socketAddress);
   ~IPCAudioIODevice() {}
@@ -34,13 +34,14 @@ public:
   BigInteger getActiveInputChannels() const override;
   int getOutputLatencyInSamples() override;
   int getInputLatencyInSamples() override;
-  void run() override;
 
   bool hasControlPanel() const override { return false; }
   bool showControlPanel() override { return false; }
   bool setAudioPreprocessingEnabled(bool shouldBeEnabled) override {
     return false;
   }
+
+  grpc::Status ProcessAudioBlock (grpc::ServerContext* context, const vstjs::AudioBlock* request, vstjs::AudioBlock* reply) override;
 
 private:
   ScopedPointer<StringArray> inputChannelNames;
@@ -49,6 +50,11 @@ private:
   ScopedPointer<Array<int>> bufferSizes;
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
+
+  ScopedPointer<grpc::ServerBuilder> serverBuilder;
+  ScopedPointer<RpcAudioService> rpcAudioService;
+  std::unique_ptr<grpc::Server> serviceInstance;
+
   const String socketAddress;
 
   zmq::context_t context;
@@ -57,9 +63,6 @@ private:
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
-  int bufferSize = 0;
-
-  Random randomGen;
 };
 
 class IPCAudioIODeviceType : public AudioIODeviceType {

@@ -30,7 +30,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include/VST3
     ${CMAKE_SOURCE_DIR}/include/zmq
     /Users/dxr224/Projects/grpc/include
-
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_JS_INC})

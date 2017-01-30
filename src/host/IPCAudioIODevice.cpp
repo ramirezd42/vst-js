@@ -3,17 +3,21 @@
 //
 
 #include "IPCAudioIODevice.h"
+#include <grpc++/grpc++.h>
 #include "zhelpers.hpp"
 #include <vector>
 using vstjs::RpcAudioIO;
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::Status;
 
-class RpcAudioServiceImpl final : public
+
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
                                    const String _socketAddress)
-    : AudioIODevice(deviceName, "IPC"), Thread(deviceName),
+    : AudioIODevice(deviceName, "IPC"),
       socketAddress(_socketAddress), deviceIsOpen(false), context(1),
-//      socket(context, ZMQ_REP),
       deviceIsPlaying(false) {
   inputChannelNames = new StringArray();
   inputChannelNames->add("Input 1");
@@ -42,20 +46,21 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels,
   // TODO: implement stub
   this->deviceIsOpen = true;
 
-//  socket.setsockopt(ZMQ_LINGER, 0);
-//  socket.bind(socketAddress.toRawUTF8());
-  this->startThread(9);
+  //start listening on socket address and register rpc service
+  serverBuilder->AddListeningPort(socketAddress.toRawUTF8(), grpc::InsecureServerCredentials());
+  serverBuilder->RegisterService(this->rpcAudioService);
+  serviceInstance = serverBuilder->BuildAndStart();
+  std::cout << "Server listening on " << socketAddress.toRawUTF8() << std::endl;
   return "";
 }
 
 void IPCAudioIODevice::close() {
   // TODO: implement stub
   this->deviceIsOpen = false;
-  this->stopThread(10000);
 
   deviceIsOpen = false;
-  stopThread(10000);
-//  socket.close();
+  serviceInstance->Shutdown();
+  delete serviceInstance;
 }
 
 bool IPCAudioIODevice::isOpen() {
@@ -146,77 +151,84 @@ void IPCAudioIODevice::prepareOutputData(vstjs::AudioBlock *buffer,
   }
 }
 
-void IPCAudioIODevice::run() {
-
-  while (!threadShouldExit()) {
-    std::string message;
-    while(true) {
-      try {
-//        message = s_recv (socket);
-        break;
-      } catch(zmq::error_t err){
-        std::cout << "ZMQ Receive Error: " << zmq_strerror(err.num()) << std::endl;
-      }
-    }
-
-    vstjs::AudioBlock nextBuffer;
-    if (nextBuffer.ParseFromString(message) && isPlaying() &&
-        callback != nullptr) {
-
-      // init i/o buffers
-      float **nextInputBuffer;
-      nextInputBuffer = new float *[nextBuffer.numchannels()];
-      for (int i = 0; i < nextBuffer.numchannels(); i++) {
-        nextInputBuffer[i] = new float[nextBuffer.samplesize()];
-      }
-      this->prepareInputData(&nextBuffer, nextInputBuffer);
-
-      float **nextOutputBuffer;
-      nextOutputBuffer = new float *[nextBuffer.numchannels()];
-      for (int i = 0; i < nextBuffer.numchannels(); i++) {
-        nextOutputBuffer[i] = new float[nextBuffer.samplesize()];
-      }
-      this->prepareOutputData(&nextBuffer, nextOutputBuffer);
-
-      // pass i/o data to audio device callback
-      callback->audioDeviceIOCallback(
-          const_cast<const float **>(nextInputBuffer),
-          nextBuffer.numchannels(), nextOutputBuffer,
-          nextBuffer.numchannels(), nextBuffer.samplesize());
-
-      // copy new output data to protobuf object
-      for (int channel = 0; channel < nextBuffer.numchannels();
-           ++channel) {
-        for (int sample = 0; sample < nextBuffer.samplesize(); ++sample) {
-          nextBuffer.set_audiodata((channel * nextBuffer.samplesize()) +
-                                        sample,
-                                    nextOutputBuffer[channel][sample]);
-        }
-      }
-
-      // reserialize protobuf object and send back
-      std::string message;
-      nextBuffer.SerializeToString(&message);
-
-      while(true) {
-        try {
-//          s_send (socket, message);
-          break;
-        } catch(zmq::error_t err){
-          std::cout << "ZMQ Send Error: " << zmq_strerror(err.num()) << std::endl;
-        }
-      }
-
-      // clean up i/o buffer memory
-      for (int i = 0; i < nextBuffer.numchannels(); ++i) {
-        delete[] nextInputBuffer[i];
-      }
-      delete[] nextInputBuffer;
-
-      for (int i = 0; i < nextBuffer.numchannels(); ++i) {
-        delete[] nextOutputBuffer[i];
-      }
-      delete[] nextOutputBuffer;
-    }
-  }
+grpc::Status IPCAudioIODevice::ProcessAudioBlock (grpc::ServerContext* context, const vstjs::AudioBlock* request,
+                                vstjs::AudioBlock* reply) {
+  // todo:: what was previously in run method should be in here now
+  return grpc::Status::OK;
 }
+
+//
+//void IPCAudioIODevice::run() {
+//
+//  while (!threadShouldExit()) {
+//    std::string message;
+//    while(true) {
+//      try {
+////        message = s_recv (socket);
+//        break;
+//      } catch(zmq::error_t err){
+//        std::cout << "ZMQ Receive Error: " << zmq_strerror(err.num()) << std::endl;
+//      }
+//    }
+//
+//    vstjs::AudioBlock nextBuffer;
+//    if (nextBuffer.ParseFromString(message) && isPlaying() &&
+//        callback != nullptr) {
+//
+//      // init i/o buffers
+//      float **nextInputBuffer;
+//      nextInputBuffer = new float *[nextBuffer.numchannels()];
+//      for (int i = 0; i < nextBuffer.numchannels(); i++) {
+//        nextInputBuffer[i] = new float[nextBuffer.samplesize()];
+//      }
+//      this->prepareInputData(&nextBuffer, nextInputBuffer);
+//
+//      float **nextOutputBuffer;
+//      nextOutputBuffer = new float *[nextBuffer.numchannels()];
+//      for (int i = 0; i < nextBuffer.numchannels(); i++) {
+//        nextOutputBuffer[i] = new float[nextBuffer.samplesize()];
+//      }
+//      this->prepareOutputData(&nextBuffer, nextOutputBuffer);
+//
+//      // pass i/o data to audio device callback
+//      callback->audioDeviceIOCallback(
+//          const_cast<const float **>(nextInputBuffer),
+//          nextBuffer.numchannels(), nextOutputBuffer,
+//          nextBuffer.numchannels(), nextBuffer.samplesize());
+//
+//      // copy new output data to protobuf object
+//      for (int channel = 0; channel < nextBuffer.numchannels();
+//           ++channel) {
+//        for (int sample = 0; sample < nextBuffer.samplesize(); ++sample) {
+//          nextBuffer.set_audiodata((channel * nextBuffer.samplesize()) +
+//                                        sample,
+//                                    nextOutputBuffer[channel][sample]);
+//        }
+//      }
+//
+//      // reserialize protobuf object and send back
+//      std::string message;
+//      nextBuffer.SerializeToString(&message);
+//
+//      while(true) {
+//        try {
+////          s_send (socket, message);
+//          break;
+//        } catch(zmq::error_t err){
+//          std::cout << "ZMQ Send Error: " << zmq_strerror(err.num()) << std::endl;
+//        }
+//      }
+//
+//      // clean up i/o buffer memory
+//      for (int i = 0; i < nextBuffer.numchannels(); ++i) {
+//        delete[] nextInputBuffer[i];
+//      }
+//      delete[] nextInputBuffer;
+//
+//      for (int i = 0; i < nextBuffer.numchannels(); ++i) {
+//        delete[] nextOutputBuffer[i];
+//      }
+//      delete[] nextOutputBuffer;
+//    }
+//  }
+//}
