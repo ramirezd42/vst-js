@@ -1,14 +1,18 @@
+var diff = require('deep-diff').diff;
 const AudioContext = require('web-audio-api').AudioContext
-  , Speaker = require('speaker')
+const AudioBuffer = require('web-audio-api').AudioBuffer
+const Speaker = require('speaker')
 
 const fs = require('fs')
 const spawn = require('child_process').spawn
 
 const grpc = require('grpc')
 const vstjsProto = grpc.load('./shared/proto/iobuffer.proto').vstjs
-const Sync = require('sync')
+const deasync = require('deasync');
 
 const bufferSize = 512
+const sampleSize = 512
+const numChannels = 2
 const numInputChannels = 2
 const numOutputChannels = 2
 
@@ -16,6 +20,7 @@ const numOutputChannels = 2
 const pluginPath = '/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3'
 const hostAddress = '0.0.0.0:50051'
 const rpcAudioIO = new vstjsProto.RpcAudioIO(hostAddress,grpc.credentials.createInsecure())
+const processAudioBlockSync = deasync(rpcAudioIO.processAudioBlock).bind(rpcAudioIO)
 const proc = spawn('/Users/dxr224/Projects/vst-js/cmake-build-debug/vstjs-bin', [pluginPath, hostAddress])
 
 // setup webaudio stuff
@@ -45,19 +50,37 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     merged.set(channelData, inputData.length)
     inputData = merged
   }
+  let result
+  try {
+    result = processAudioBlockSync({
+      sampleSize,
+      numChannels,
+      audiodata: Array.from(inputData)
+    })
+  }
+  catch(err){
+    console.log(err);
+  }
 
-  rpcAudioIO.processAudioBlock({
-    sampleSize: 512,
-    numChannels: 2,
-    audiodata: Array.from(inputData),
-  }, function(err, response) {
-    if(response) {
-      console.log('response: ')
-      console.log(response)
-    }
-  })
-
-  audioProcessingEvent.outputBuffer = inputBuffer
+  if(result) {
+    const deInterleaved = Array.from(Array(numChannels).keys()).map((i) => {
+      return result.audiodata.slice(i*sampleSize, i*sampleSize + sampleSize)
+    })
+    const foo = AudioBuffer.fromArray(deInterleaved, inputBuffer.sampleRate)
+    const bar = inputBuffer
+    const diffy = diff(foo,bar)
+    audioProcessingEvent.outputBuffer = foo
+  } else {
+    audioProcessingEvent.outputBuffer = inputBuffer
+  }
+    // for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
+    // const channelData = result.audiodata.slice((channel*sampleSize), (channel*sampleSize + sampleSize-1))
+    // const channelData = inputBuffer.getChannelData(channel)
+    // const merged = new Float32Array(inputData.length + channelData.length)
+    // merged.set(inputData)
+    // merged.set(channelData, inputData.length)
+    // inputData = merged
+  // }
 
   loop++
   console.log(`Block ${loop} processed`)
