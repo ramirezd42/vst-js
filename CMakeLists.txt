@@ -14,11 +14,7 @@ link_directories()
 file(GLOB SHARED_SOURCE_FILES "shared/proto/build/*.pb.cc" "shared/JuceLibraryCode/*.mm")
 file(GLOB BIN_SOURCE_FILES "src/host/*.cpp" "src/host/*.h")
 file(GLOB MODULE_SOURCE_FILES "src/module/*.cpp" "src/module/*.h")
-add_library(${PROJECT_NAME} SHARED ${SHARED_SOURCE_FILES} ${MODULE_SOURCE_FILES})
 add_executable(${BIN_NAME} ${SHARED_SOURCE_FILES} ${BIN_SOURCE_FILES})
-
-# Gives our library file a .node extension without any "lib" prefix
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
@@ -29,10 +25,9 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include/JUCE/modules
     ${CMAKE_SOURCE_DIR}/include/VST3
     ${CMAKE_SOURCE_DIR}/include/zmq
-    /Users/dxr224/Projects/grpc/include
+    /usr/local/Cellar/grpc/1.0.1/include
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_JS_INC})
 target_include_directories(${BIN_NAME} PRIVATE ${CMAKE_JS_INC})
 
 # Essential library files to link to a node addon
@@ -57,18 +52,10 @@ SET(JUCE_PLATFORM_SPECIFIC_LIBRARIES
     "-lobjc")
 
 target_link_libraries(
-    ${PROJECT_NAME}
-    ${CMAKE_JS_LIB}
-    ${JUCE_PLATFORM_SPECIFIC_LIBRARIES}
-    ${CMAKE_SOURCE_DIR}/lib/libprotobuf.a
-    ${CMAKE_SOURCE_DIR}/lib/libzmq.a
-)
-
-target_link_libraries(
         ${BIN_NAME}
         ${CMAKE_JS_LIB}
         ${JUCE_PLATFORM_SPECIFIC_LIBRARIES}
         ${CMAKE_SOURCE_DIR}/lib/libprotobuf.a
         ${CMAKE_SOURCE_DIR}/lib/libzmq.a
-        /Users/dxr224/Projects/grpc/libs/opt/libgrpc++.dylib
+        /usr/local/Cellar/grpc/1.0.1/lib/libgrpc++.dylib
 )

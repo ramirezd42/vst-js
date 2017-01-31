@@ -57,8 +57,8 @@ private:
   const String socketAddress;
 
   zmq::context_t context;
-  void prepareInputData(vstjs::AudioBlock *buffer, float **dest);
-  void prepareOutputData(vstjs::AudioBlock *buffer, float **dest);
+  void prepareInputData(const vstjs::AudioBlock *buffer, float **dest);
+  void prepareOutputData(const vstjs::AudioBlock *buffer, float **dest);
 
   bool deviceIsOpen;
   bool deviceIsPlaying;

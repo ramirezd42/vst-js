@@ -30,6 +30,8 @@ IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
 
   bitDepths = new Array<int>();
   bitDepths->add(24);
+
+  serverBuilder = new ServerBuilder();
 }
 
 String IPCAudioIODevice::open(const BigInteger &inputChannels,
@@ -42,10 +44,10 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels,
   this->deviceIsOpen = true;
 
   //start listening on socket address and register rpc service
-  serverBuilder->AddListeningPort(socketAddress.toRawUTF8(), grpc::InsecureServerCredentials());
-  serverBuilder->RegisterService(this);
-  serviceInstance = serverBuilder->BuildAndStart();
-  std::cout << "Server listening on " << socketAddress.toRawUTF8() << std::endl;
+  this->serverBuilder->AddListeningPort(this->socketAddress.toRawUTF8(), grpc::InsecureServerCredentials());
+  this->serverBuilder->RegisterService(this);
+  this->serviceInstance = serverBuilder->BuildAndStart();
+  std::cout << "Server listening on " << this->socketAddress.toRawUTF8() << std::endl;
   return "";
 }
 
@@ -123,7 +125,7 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
   return 0;
 }
 
-void IPCAudioIODevice::prepareInputData(vstjs::AudioBlock *buffer,
+void IPCAudioIODevice::prepareInputData(const vstjs::AudioBlock *buffer,
                                         float **destination) {
   for (int channel = 0; channel < buffer->numchannels(); ++channel) {
     for (int sample = 0; sample < buffer->samplesize(); ++sample) {
@@ -133,7 +135,7 @@ void IPCAudioIODevice::prepareInputData(vstjs::AudioBlock *buffer,
   }
 }
 
-void IPCAudioIODevice::prepareOutputData(vstjs::AudioBlock *buffer,
+void IPCAudioIODevice::prepareOutputData(const vstjs::AudioBlock *buffer,
                                          float **destination) {
   for (int channel = 0; channel < buffer->numchannels(); ++channel) {
     for (int sample = 0; sample < buffer->samplesize(); ++sample) {
@@ -146,10 +148,53 @@ void IPCAudioIODevice::prepareOutputData(vstjs::AudioBlock *buffer,
 grpc::Status IPCAudioIODevice::ProcessAudioBlock (grpc::ServerContext* context, const vstjs::AudioBlock* request,
                                 vstjs::AudioBlock* reply) {
   // todo:: what was previously in run method should be in here now
-  return grpc::Status::OK;
+  //
+
+  if ( isPlaying() && callback != nullptr) {
+
+    // init i/o buffers
+    float **nextInputBuffer;
+    nextInputBuffer = new float *[request->numchannels()];
+    for (int i = 0; i < request->numchannels(); i++) {
+      nextInputBuffer[i] = new float[request->samplesize()];
+    }
+    this->prepareInputData(request, nextInputBuffer);
+
+    float **nextOutputBuffer;
+    nextOutputBuffer = new float *[request->numchannels()];
+    for (int i = 0; i < request->numchannels(); i++) {
+      nextOutputBuffer[i] = new float[request->samplesize()];
+    }
+    this->prepareOutputData(request, nextOutputBuffer);
+
+    // pass i/o data to audio device callback
+    callback->audioDeviceIOCallback(
+      const_cast<const float **>(nextInputBuffer),
+      request->numchannels(), nextOutputBuffer,
+      request->numchannels(), request->samplesize());
+
+    // copy new output data to protobuf object
+    for (int channel = 0; channel < request->numchannels();
+         ++channel) {
+      for (int sample = 0; sample < request->samplesize(); ++sample) {
+        reply->add_audiodata(nextOutputBuffer[channel][sample]);
+      }
+    }
+
+    // clean up i/o buffer memory
+    for (int i = 0; i < request->numchannels(); ++i) {
+      delete[] nextInputBuffer[i];
+    }
+    delete[] nextInputBuffer;
+
+    for (int i = 0; i < request->numchannels(); ++i) {
+      delete[] nextOutputBuffer[i];
+    }
+    delete[] nextOutputBuffer;
+    return grpc::Status::OK;
+  }
 }
 
-//
 //void IPCAudioIODevice::run() {
 //
 //  while (!threadShouldExit()) {

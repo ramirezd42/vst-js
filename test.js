@@ -14,9 +14,9 @@ const numOutputChannels = 2
 
 // launch a new plugin Process
 const pluginPath = '/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3'
-const hostAddress = 'tcp://127.0.0.1:5561'
-const rpcAudioIO = new vstjsProto.rpcAudioIO(hostAddress,grpc.credentials.createInsecure())
-const proc = spawn('/Users/dxr224/Projects/vst-js/vstjs-bin', [pluginPath, hostAddress])
+const hostAddress = '0.0.0.0:50051'
+const rpcAudioIO = new vstjsProto.RpcAudioIO(hostAddress,grpc.credentials.createInsecure())
+const proc = spawn('/Users/dxr224/Projects/vst-js/cmake-build-debug/vstjs-bin', [pluginPath, hostAddress])
 
 // setup webaudio stuff
 const audioContext = new AudioContext
@@ -49,9 +49,12 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
   rpcAudioIO.processAudioBlock({
     sampleSize: 512,
     numChannels: 2,
-    inputData: Array.from(inputData),
-  }, function(response) {
-    console.log(response.outputData)
+    audiodata: Array.from(inputData),
+  }, function(err, response) {
+    if(response) {
+      console.log('response: ')
+      console.log(response)
+    }
   })
 
   audioProcessingEvent.outputBuffer = inputBuffer
