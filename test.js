@@ -37,7 +37,6 @@ audioContext.outStream = new Speaker({
 sourceNode.connect(scriptNode)
 scriptNode.connect(audioContext.destination)
 
-let loop = 0;
 scriptNode.onaudioprocess = function(audioProcessingEvent) {
 
   // The input buffer is the song we loaded earlier
@@ -66,10 +65,8 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     const deInterleaved = Array.from(Array(numChannels).keys()).map((i) => {
       return result.audiodata.slice(i*sampleSize, i*sampleSize + sampleSize)
     })
-    const foo = AudioBuffer.fromArray(deInterleaved, inputBuffer.sampleRate)
-    const bar = inputBuffer
-    const diffy = diff(foo,bar)
-    audioProcessingEvent.outputBuffer = foo
+    const outputBuffer = AudioBuffer.fromArray(deInterleaved, inputBuffer.sampleRate)
+    audioProcessingEvent.outputBuffer = outputBuffer
   } else {
     audioProcessingEvent.outputBuffer = inputBuffer
   }
@@ -82,8 +79,6 @@ scriptNode.onaudioprocess = function(audioProcessingEvent) {
     // inputData = merged
   // }
 
-  loop++
-  console.log(`Block ${loop} processed`)
 }
 
 

@@ -26,7 +26,7 @@ IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
   sampleRates->add(44000);
 
   bufferSizes = new Array<int>();
-  bufferSizes->add(100);
+  bufferSizes->add(512);
 
   bitDepths = new Array<int>();
   bitDepths->add(24);
@@ -40,7 +40,6 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels,
   if (this->deviceIsOpen) {
     return "";
   }
-  // TODO: implement stub
   this->deviceIsOpen = true;
 
   //start listening on socket address and register rpc service
@@ -52,18 +51,15 @@ String IPCAudioIODevice::open(const BigInteger &inputChannels,
 }
 
 void IPCAudioIODevice::close() {
-  // TODO: implement stub
   this->deviceIsOpen = false;
   deviceIsOpen = false;
 }
 
 bool IPCAudioIODevice::isOpen() {
-  // TODO: implement stub
   return this->deviceIsOpen;
 }
 
 void IPCAudioIODevice::start(AudioIODeviceCallback *callback) {
-  // TODO: implement stub
   if (!deviceIsPlaying) {
     if (callback != nullptr) {
       callback->audioDeviceAboutToStart(this);
@@ -76,7 +72,6 @@ void IPCAudioIODevice::start(AudioIODeviceCallback *callback) {
 }
 
 void IPCAudioIODevice::stop() {
-  // TODO: implement stub
   this->deviceIsPlaying = false;
   if (callback != nullptr) {
     callback->audioDeviceStopped();
@@ -86,42 +81,34 @@ void IPCAudioIODevice::stop() {
 bool IPCAudioIODevice::isPlaying() { return this->deviceIsPlaying; }
 
 String IPCAudioIODevice::getLastError() {
-  // TODO: implement stub
   return "";
 }
 
 int IPCAudioIODevice::getCurrentBufferSizeSamples() {
-  // TODO: implement stub
   return this->getDefaultBufferSize();
 }
 
 double IPCAudioIODevice::getCurrentSampleRate() {
-  // TODO: implement stub
   return this->sampleRates->getFirst();
 }
 
 int IPCAudioIODevice::getCurrentBitDepth() {
-  // TODO: implement stub
   return this->bitDepths->getFirst();
 }
 
 BigInteger IPCAudioIODevice::getActiveOutputChannels() const {
-  // TODO: implement stub
   return 11;
 }
 
 BigInteger IPCAudioIODevice::getActiveInputChannels() const {
-  // TODO: implement stub
   return 11;
 }
 
 int IPCAudioIODevice::getOutputLatencyInSamples() {
-  // TODO: implement stub
   return 0;
 }
 
 int IPCAudioIODevice::getInputLatencyInSamples() {
-  // TODO: implement stub
   return 0;
 }
 
@@ -129,9 +116,7 @@ void IPCAudioIODevice::prepareInputData(const vstjs::AudioBlock *buffer,
                                         float **destination) {
   for (int channel = 0; channel < buffer->numchannels(); ++channel) {
     for (int sample = 0; sample < buffer->samplesize(); ++sample) {
-      destination[channel][sample] =
-          buffer->audiodata(channel * buffer->samplesize() + sample);
-//      std::cout << "sample " << channel * buffer->samplesize() + sample << ": " << destination[channel][sample] << std::endl;
+      destination[channel][sample] = buffer->audiodata(channel * buffer->samplesize() + sample);
     }
   }
 }
@@ -140,8 +125,7 @@ void IPCAudioIODevice::prepareOutputData(const vstjs::AudioBlock *buffer,
                                          float **destination) {
   for (int channel = 0; channel < buffer->numchannels(); ++channel) {
     for (int sample = 0; sample < buffer->samplesize(); ++sample) {
-      destination[channel][sample] =
-          0;
+      destination[channel][sample] = 0;
     }
   }
 }
@@ -172,13 +156,12 @@ grpc::Status IPCAudioIODevice::ProcessAudioBlock (grpc::ServerContext* context, 
       request->numchannels(), nextOutputBuffer,
       request->numchannels(), request->samplesize());
 
-    // copy new output data to protobuf
-    for (int channel = 0; channel < request->numchannels(); ++channel) {
+    // copy new output data to protobuf object
+    for (int channel = 0; channel < request->numchannels();
+         ++channel) {
       for (int sample = 0; sample < request->samplesize(); ++sample) {
         reply->add_audiodata(nextOutputBuffer[channel][sample]);
       }
     }
-
   }
-  return grpc::Status::OK;
 }
