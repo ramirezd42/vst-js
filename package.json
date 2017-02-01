@@ -2,6 +2,7 @@
   "name": "vst-js",
   "version": "0.0.0",
   "description": "",
+  "main": "index.js",
   "scripts": {
     "install": "cmake-js compile",
     "protobuf": "protoc -I=shared/proto --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin --grpc_out=shared/proto/build --cpp_out=shared/proto/build shared/proto/iobuffer.proto"
@@ -11,14 +12,12 @@
   "gypfile": true,
   "dependencies": {
     "deasync": "^0.1.9",
-    "grpc": "^1.0.1",
-    "nan": "^2.4.0",
-    "protobufjs": "^6.6.2",
-    "sync": "^0.2.5",
-    "zmq": "^2.15.3"
+    "grpc": "^1.0.1"
   },
   "devDependencies": {
-    "deep-diff": "^0.3.4",
+    "eslint": "^3.14.1",
+    "eslint-config-airbnb-base": "^11.0.1",
+    "eslint-plugin-import": "^2.2.0",
     "node-core-audio": "^0.5.1",
     "speaker": "^0.3.0",
     "wav": "^1.0.1",
