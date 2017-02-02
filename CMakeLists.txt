@@ -19,6 +19,7 @@ add_executable(${BIN_NAME} ${SHARED_SOURCE_FILES} ${BIN_SOURCE_FILES})
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
 include_directories(
+    ${CMAKE_SOURCE_DIR}/shared
     ${CMAKE_SOURCE_DIR}/shared/proto/build
     ${CMAKE_SOURCE_DIR}/JuceLibraryCode
     ${CMAKE_SOURCE_DIR}/include

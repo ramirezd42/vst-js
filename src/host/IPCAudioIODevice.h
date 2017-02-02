@@ -6,11 +6,10 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "iobuffer.grpc.pb.h"
 #include "zhelpers.hpp"
-#include <grpc++/grpc++.h>
+#include "SharedMemoryBuffer.h"
 
-class IPCAudioIODevice : public AudioIODevice, public vstjs::RpcAudioIO::Service {
+class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
   IPCAudioIODevice(const String &deviceName, const String _socketAddress);
   ~IPCAudioIODevice() {}
@@ -40,8 +39,7 @@ public:
   bool setAudioPreprocessingEnabled(bool shouldBeEnabled) override {
     return false;
   }
-
-  grpc::Status ProcessAudioBlock (grpc::ServerContext* context, const vstjs::AudioBlock* request, vstjs::AudioBlock* reply) override;
+  void run() override;
 
 private:
   ScopedPointer<StringArray> inputChannelNames;
@@ -51,14 +49,9 @@ private:
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
 
-  ScopedPointer<grpc::ServerBuilder> serverBuilder;
-  std::unique_ptr<grpc::Server> serviceInstance;
-
-  const String socketAddress;
+  const String shmemSegmentId;
 
   zmq::context_t context;
-  void prepareInputData(const vstjs::AudioBlock *buffer, float **dest);
-  void prepareOutputData(const vstjs::AudioBlock *buffer, float **dest);
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
