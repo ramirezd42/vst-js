@@ -32,6 +32,7 @@ sourceNode.connect(scriptNode)
 scriptNode.connect(audioContext.destination)
 
 scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
+  const hrstart = process.hrtime()
   const inputBuffer = audioProcessingEvent.inputBuffer
   const channels = [...Array(numChannels).keys()]
     .map(i => audioProcessingEvent.inputBuffer.getChannelData(i))
@@ -41,6 +42,9 @@ scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
 
   const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
   audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
+
+  const hrend = process.hrtime(hrstart)
+  console.info('Execution time (hr): %ds %dms', hrend[0], hrend[1] / 1000000)
 }
 
 fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
