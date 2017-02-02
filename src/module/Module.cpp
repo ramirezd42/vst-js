@@ -10,7 +10,7 @@ void InitAll(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 
   PluginHost::Init();
 
-  exports->Set(Nan::New("createHost").ToLocalChecked(),
+  exports->Set(Nan::New("launchProcess").ToLocalChecked(),
                Nan::New<v8::FunctionTemplate>(CreateObject)->GetFunction());
 }
 

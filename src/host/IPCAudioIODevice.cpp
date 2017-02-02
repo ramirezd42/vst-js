@@ -31,8 +31,10 @@ void prepareInputData(SharedMemoryBuffer *buf, float **destination) {
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
                                    const String _shmemSegmentId)
-    : AudioIODevice(deviceName, "IPC"), Thread(deviceName),
-      shmemSegmentId(_shmemSegmentId), deviceIsOpen(false), context(1),
+    : AudioIODevice(deviceName, "IPC"),
+      Thread(deviceName),
+      shmemSegmentId(_shmemSegmentId),
+      deviceIsOpen(false),
       deviceIsPlaying(false) {
   inputChannelNames = new StringArray();
   inputChannelNames->add("Input 1");

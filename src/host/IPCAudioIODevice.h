@@ -6,7 +6,6 @@
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "zhelpers.hpp"
 #include "SharedMemoryBuffer.h"
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
@@ -50,8 +49,6 @@ private:
   ScopedPointer<AudioIODeviceCallback> callback;
 
   const String shmemSegmentId;
-
-  zmq::context_t context;
 
   bool deviceIsOpen;
   bool deviceIsPlaying;

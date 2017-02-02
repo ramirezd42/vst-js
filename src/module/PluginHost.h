@@ -1,11 +1,9 @@
 #ifndef PLUGINHOST_H
-
 #define PLUGINHOST_H
 
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "iobuffer.pb.h"
-#include "zhelpers.hpp"
 #include <nan.h>
+#include "SharedMemoryBuffer.h"
 
 class PluginHost : public Nan::ObjectWrap {
 public:
@@ -15,12 +13,10 @@ public:
   static void Stop(const Nan::FunctionCallbackInfo<v8::Value> &info);
   static void
   ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
-  zmq::context_t context;
-  zmq::socket_t socket;
-  String socketAddress;
+  String shMemSegmentId;
 
 private:
-  PluginHost(String _socketAddress);
+  PluginHost(String _shmemSegmentId);
   ~PluginHost();
 
   static Nan::Persistent<v8::Function> constructor;

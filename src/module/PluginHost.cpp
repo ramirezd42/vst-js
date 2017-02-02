@@ -1,19 +1,21 @@
  #include "PluginHost.h"
 #include "../../shared/JuceLibraryCode/JuceHeader.h"
-#include "zhelpers.hpp"
 #include <nan.h>
+#include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 
 using namespace v8;
 
 // THIS JUNK IS TEMPORARY TO TEST WITH WHITE NOISE DATA
-
-void getNextInputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels, int numSamples, float * inputChannelData) {
-  for (int channel = 0; channel < numInputChannels; ++channel) {
-    for (int sample= 0; sample < numSamples * numInputChannels; ++sample) {
-      buffer.add_inputdata(inputChannelData[channel+sample]);
-    }
-  }
-}
+//
+//void getNextInputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels, int numSamples, float * inputChannelData) {
+//  for (int channel = 0; channel < numInputChannels; ++channel) {
+//    for (int sample= 0; sample < numSamples * numInputChannels; ++sample) {
+//      buffer.add_inputdata(inputChannelData[channel+sample]);
+//    }
+//  }
+//}
 
 //void getNextInputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels,
 //                            int numSamples, Random &randomGen) {
@@ -24,43 +26,41 @@ void getNextInputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels, int n
 //  }
 //}
 
-
-void getNextOutputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels,
-                             int numSamples) {
-  for (int i = 0; i < numInputChannels; ++i) {
-    for (int i = 0; i < numSamples * numInputChannels; ++i) {
-      buffer.add_outputdata(0);
-    }
-  }
-}
-
-void copyNextOutputAudioBlock(const float* data, float* output, int numInputChannels, int numSamples) {
-  for (int channel = 0; channel < numInputChannels; ++channel) {
-    for (int sample= 0; sample < numSamples * numInputChannels; ++sample) {
-      output[channel+sample] = data[channel+sample];
-    }
-  }
-}
-
-juce::String bufferToString(vstjs::IOBuffer &buffer) {
-  juce::String returnStr = "";
-  for (int channel = 0; channel < buffer.numinputchannels(); ++channel) {
-    for (int sample = 0; sample < buffer.samplesize(); ++ sample) {
-      returnStr += "Channel " + channel;
-      returnStr += ", Sample " + sample;
-      returnStr += std::to_string(buffer.inputdata().Get(buffer.samplesize()*channel + sample));
-      returnStr += "\n";
-//      std::cout << "Channel " << channel << ", Sample " << sample << ": " << buffer.inputdata().Get(buffer.samplesize()*channel + sample) << std::endl;
-    }
-  }
-  return returnStr;
-}
+//
+//void getNextOutputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels,
+//                             int numSamples) {
+//  for (int i = 0; i < numInputChannels; ++i) {
+//    for (int i = 0; i < numSamples * numInputChannels; ++i) {
+//      buffer.add_outputdata(0);
+//    }
+//  }
+//}
+//
+//void copyNextOutputAudioBlock(const float* data, float* output, int numInputChannels, int numSamples) {
+//  for (int channel = 0; channel < numInputChannels; ++channel) {
+//    for (int sample= 0; sample < numSamples * numInputChannels; ++sample) {
+//      output[channel+sample] = data[channel+sample];
+//    }
+//  }
+//}
+//
+//juce::String bufferToString(vstjs::IOBuffer &buffer) {
+//  juce::String returnStr = "";
+//  for (int channel = 0; channel < buffer.numinputchannels(); ++channel) {
+//    for (int sample = 0; sample < buffer.samplesize(); ++ sample) {
+//      returnStr += "Channel " + channel;
+//      returnStr += ", Sample " + sample;
+//      returnStr += std::to_string(buffer.inputdata().Get(buffer.samplesize()*channel + sample));
+//      returnStr += "\n";
+////      std::cout << "Channel " << channel << ", Sample " << sample << ": " << buffer.inputdata().Get(buffer.samplesize()*channel + sample) << std::endl;
+//    }
+//  }
+//  return returnStr;
+//}
 
 // END TEMPORARY JUNK
 
-PluginHost::PluginHost(juce::String _socketAddress)
-    : context(1), socket(this->context, ZMQ_REQ),
-      socketAddress(_socketAddress){};
+PluginHost::PluginHost(juce::String _shmemSegmentId) : shMemSegmentId(_shmemSegmentId){};
 PluginHost::~PluginHost(){};
 
 Nan::Persistent<v8::Function> PluginHost::constructor;
@@ -89,16 +89,12 @@ void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
 
   // connect socket to requested address
-  obj->socket.setsockopt(ZMQ_RCVTIMEO, -1);
-  obj->socket.setsockopt(ZMQ_LINGER, 0);
-  std::cout << "Socket Address: " << obj->socketAddress << std::endl;
-  obj->socket.connect(obj->socketAddress.toRawUTF8());
+  std::cout << "Shared Memory ID: " << obj->shMemSegmentId << std::endl;
   info.GetReturnValue().Set(Nan::New("Host Started...").ToLocalChecked());
 }
 
 void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
-  obj->socket.disconnect(obj->socketAddress.toRawUTF8());
   info.GetReturnValue().Set(Nan::New("Host Stopped...").ToLocalChecked());
 }
 
@@ -148,54 +144,9 @@ void PluginHost::ProcessAudioBlock(
 
   Local<TypedArray> inputDataArg = info[2].As<TypedArray>();
   Nan::TypedArrayContents<float> inputChannelData(inputDataArg);
-//
-//  v8::Local<v8::Array> inputChannelData = v8::Local<v8::Array>::Cast(info[2]);
-//  for (uint32_t channel = 0; channel < inputChannelData->Length(); ++channel) {
-//    v8::Float32Array::Cast(*inputChannelData->Get(channel));
-//  }
 
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
 
-  // THIS JUNK IS TEMPORARY TO TEST WHITE NOISE DATA
-  Random randomGen;
-  vstjs::IOBuffer nextBuffer;
-  nextBuffer.set_samplesize(numSamples);
-  nextBuffer.set_numinputchannels(numChannels);
-  nextBuffer.set_numoutputchannels(numChannels);
-
-  // generate next blocks of IO data
-//  getNextInputAudioBlock(nextBuffer, numChannels, numSamples, randomGen);
-  getNextInputAudioBlock(nextBuffer, numChannels, numSamples, (*inputChannelData));
-  getNextOutputAudioBlock(nextBuffer, numChannels, numSamples);
-//
-
-  std::string message;
-  nextBuffer.SerializeToString(&message);
-
-  while(true) {
-    try {
-      s_send(obj->socket, message);
-      break;
-    } catch(zmq::error_t err){
-      std::cout << zmq_strerror(err.num());;
-    }
-  }
-
-  while(true) {
-    try {
-//      std::cout << bufferToString(nextBuffer);
-      std::string response = s_recv(obj->socket);
-      nextBuffer.ParseFromString(response);
-      break;
-    } catch(zmq::error_t err){
-      std::cout << zmq_strerror(err.num());
-    }
-  }
-
-  const float* foo = nextBuffer.inputdata().data();
-//  copyNextOutputAudioBlock(foo, (*inputChannelData), numChannels, numSamples);
-
-//  // just pass the input buffer as the output buffer for now (no-op)
   info.GetReturnValue().Set(info[2]);
 }
 
