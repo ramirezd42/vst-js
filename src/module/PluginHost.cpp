@@ -1,11 +1,12 @@
  #include "PluginHost.h"
-#include "../../shared/JuceLibraryCode/JuceHeader.h"
 #include <nan.h>
-#include <boost/interprocess/shared_memory_object.hpp>
+#include <iostream>
 #include <boost/interprocess/sync/scoped_lock.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 
 using namespace v8;
+using namespace std;
+using namespace boost::process;
+using namespace boost::interprocess;
 
 // THIS JUNK IS TEMPORARY TO TEST WITH WHITE NOISE DATA
 //
@@ -58,9 +59,53 @@ using namespace v8;
 //  return returnStr;
 //}
 
+ void getNextInputBuffer(SharedMemoryBuffer* buffer) {
+   for(int channel = 0; channel < buffer->NumChannels; ++channel) {
+     for(int sample =0; sample < buffer->BufferSize; ++sample) {
+       buffer->buffer[channel][sample] = rand() / (float)RAND_MAX;
+     }
+   }
+ }
+
+ void printBuffer(SharedMemoryBuffer* buffer) {
+   for(int channel = 0; channel < buffer->NumChannels; ++channel) {
+     printf("Channel %d: ", channel);
+     for(int sample =0; sample < buffer->BufferSize; ++sample) {
+       printf("%f ", buffer->buffer[channel][sample]);
+     }
+     cout << "\n";
+   }
+ }
+
 // END TEMPORARY JUNK
 
-PluginHost::PluginHost(juce::String _shmemSegmentId) : shMemSegmentId(_shmemSegmentId){};
+PluginHost::PluginHost(std::string _shmemSegmentId, std::string _pluginPath)
+  : shMemSegmentId(_shmemSegmentId),
+    pluginPath(_pluginPath),
+    shmemRemover(_shmemSegmentId.data())
+
+{
+  shm = unique_ptr<shared_memory_object> (new shared_memory_object(create_only               //only create
+    ,shMemSegmentId.data() //name
+    ,read_write                //read-write mode
+  ));
+
+  try {
+
+    //Set size
+    shm->truncate(sizeof(SharedMemoryBuffer));
+
+    region = unique_ptr<mapped_region> (new mapped_region(
+      *shm,
+      read_write
+    ));
+
+    //Construct the shared structure in memory
+    shmemBuffer = unique_ptr<SharedMemoryBuffer>(new(region->get_address()) SharedMemoryBuffer);
+  } catch(interprocess_exception &ex){
+    cout << ex.what() << endl;
+  }
+};
 PluginHost::~PluginHost(){};
 
 Nan::Persistent<v8::Function> PluginHost::constructor;
@@ -90,11 +135,14 @@ void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
 
   // connect socket to requested address
   std::cout << "Shared Memory ID: " << obj->shMemSegmentId << std::endl;
-  info.GetReturnValue().Set(Nan::New("Host Started...").ToLocalChecked());
+  // launch child process, with specified plugin
+  // listening on specified socket address
+  obj->processManager.open_process(obj->pluginPath, obj->shMemSegmentId);
 }
 
 void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
+  obj->processManager.terminate_process();
   info.GetReturnValue().Set(Nan::New("Host Stopped...").ToLocalChecked());
 }
 
@@ -108,12 +156,16 @@ void PluginHost::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
     Nan::ThrowTypeError("Incorrect Type for Argument 1. Expected String");
     return;
   }
+//
+//  v8::String::Utf8Value param1(info[0]->ToString());
+//  string shmemSegmentId = string(*param1);
 
   v8::String::Utf8Value param1(info[0]->ToString());
-  juce::String socketAddress = std::string(*param1);
+  string pluginPath = string(*param1);
 
-  PluginHost *obj = new PluginHost(socketAddress);
-  obj->Wrap(info.This());
+  PluginHost *obj = new PluginHost("test123", pluginPath);
+
+    obj->Wrap(info.This());
   info.GetReturnValue().Set(info.This());
 }
 
@@ -137,15 +189,32 @@ void PluginHost::ProcessAudioBlock(
   }
   double numSamples = info[1]->NumberValue();
 
-  if (!info[2]->IsTypedArray()) {
+  if (!info[2]->IsArray()) {
     Nan::ThrowTypeError("Incorrect Type for Argument 3. Expected Typed Array");
     return;
   }
 
-  Local<TypedArray> inputDataArg = info[2].As<TypedArray>();
-  Nan::TypedArrayContents<float> inputChannelData(inputDataArg);
-
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
+
+  scoped_lock<interprocess_mutex> lock(obj->shmemBuffer.get()->mutex);
+  if(obj->shmemBuffer.get()->message_in){
+    cout << "Full. Waiting" << endl;
+    obj->shmemBuffer.get()->cond_full.wait(lock);
+  }
+//  cout << "output:" << endl;
+//  printBuffer(obj->shmemBuffer.get());
+//  cout << endl << endl;
+
+  getNextInputBuffer(obj->shmemBuffer.get());
+//  printf("Buffer %d:\n---\n");
+//  cout << "input:" << endl;
+//  printBuffer(obj->shmemBuffer.get());
+
+  //Notify to the other process that there is a message
+  obj->shmemBuffer.get()->cond_empty.notify_one();
+
+  //Mark message buffer as full
+  obj->shmemBuffer.get()->message_in = true;
 
   info.GetReturnValue().Set(info[2]);
 }

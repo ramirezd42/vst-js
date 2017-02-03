@@ -10,12 +10,15 @@ const path = require('path')
 const bufferSize = 512
 const numChannels = 2
 const pluginPath = '/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3'
-const hostAddress = '0.0.0.0:50051'
-const PluginHost = require('../index').PluginHost
-
-// launch plugin host process
-const pluginHost = new PluginHost(pluginPath, hostAddress)
-pluginHost.launchProcess()
+// const hostAddress = '0.0.0.0:50051'
+// const  = require('../index').PluginHost
+//
+// // launch plugin host process
+// const pluginHost = new PluginHost(pluginPath, hostAddress)
+// pluginHost.launchProcess()
+const vstjs = require('../build/Release/vstjs.node')
+const pluginHost = vstjs.launchPlugin(pluginPath)
+pluginHost.start()
 
 // setup webaudio stuff
 const audioContext = new AudioContext()
@@ -38,8 +41,7 @@ scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
     .map(i => audioProcessingEvent.inputBuffer.getChannelData(i))
 
   // process audio block via pluginHost
-  const output = pluginHost.processAudioBlock(channels)
-
+  const output = pluginHost.processAudioBlock(numChannels, bufferSize, channels)
   const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
   audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
 
@@ -56,14 +58,14 @@ fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
   }, (e) => { throw e })
 })
 
-pluginHost.on('info', (data) => {
-  console.log(`stdout: ${data}`)
-})
-
-pluginHost.on('error', (data) => {
-  console.log(`stderr: ${data}`)
-})
-
-pluginHost.on('close', (code) => {
-  console.log(`child process exited with code ${code}`)
-})
+// pluginHost.on('info', (data) => {
+//   console.log(`stdout: ${data}`)
+// })
+//
+// pluginHost.on('error', (data) => {
+//   console.log(`stderr: ${data}`)
+// })
+//
+// pluginHost.on('close', (code) => {
+//   console.log(`child process exited with code ${code}`)
+// })

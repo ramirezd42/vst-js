@@ -158,8 +158,8 @@ void IPCAudioIODevice::run() {
       }
       else{
         //Print the message
-        cout << "Buffer\n---\ninput:" << endl;
-        printBuffer(data);
+//        cout << "Buffer\n---\ninput:" << endl;
+//        printBuffer(data);
 
 
         // init input buffer
@@ -184,9 +184,9 @@ void IPCAudioIODevice::run() {
           data->NumChannels, outputBuffer,
           data->NumChannels, data->BufferSize
         );
-          cout << "output:" << endl;
-        printBuffer(data);
-        cout << endl << endl;
+//        cout << "output:" << endl;
+//        printBuffer(data);
+//        cout << endl << endl;
 
         //Notify the other process that the buffer is empty
         data->message_in = false;

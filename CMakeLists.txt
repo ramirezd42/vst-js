@@ -60,6 +60,7 @@ target_link_libraries(
         ${PROJECT_NAME}
         ${CMAKE_JS_LIB}
         ${JUCE_PLATFORM_SPECIFIC_LIBRARIES}
+        /usr/local/Cellar/boost/1.63.0/lib/libboost_system.a
 )
 
 target_link_libraries(
