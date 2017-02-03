@@ -10,7 +10,7 @@
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
-  IPCAudioIODevice(const String &deviceName, const String _socketAddress);
+  IPCAudioIODevice(const String &deviceName, const String _shmemFile);
   ~IPCAudioIODevice() {}
   StringArray getOutputChannelNames() override { return *inputChannelNames; };
   StringArray getInputChannelNames() override { return *outputChannelNames; };
@@ -48,7 +48,7 @@ private:
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
 
-  const String shmemSegmentId;
+  const String shmemFile;
 
   bool deviceIsOpen;
   bool deviceIsPlaying;

@@ -30,10 +30,10 @@ void prepareInputData(SharedMemoryBuffer *buf, float **destination) {
 
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
-                                   const String _shmemSegmentId)
+                                   const String _shmemFile)
     : AudioIODevice(deviceName, "IPC"),
       Thread(deviceName),
-      shmemSegmentId(_shmemSegmentId),
+      shmemFile(_shmemFile),
       deviceIsOpen(false),
       deviceIsPlaying(false) {
   inputChannelNames = new StringArray();
@@ -133,7 +133,7 @@ void IPCAudioIODevice::run() {
   //Create a shared memory object.
   shared_memory_object shm
     (open_only                    //only create
-      , shmemSegmentId.toRawUTF8()
+      , shmemFile.toRawUTF8()
       ,read_write                   //read-write mode
     );
   try{
@@ -157,10 +157,6 @@ void IPCAudioIODevice::run() {
         data->cond_empty.wait(lock);
       }
       else{
-        //Print the message
-//        cout << "Buffer\n---\ninput:" << endl;
-//        printBuffer(data);
-
 
         // init input buffer
         // todo: have a single outputbuffer as a private class member and just re-use that every time
@@ -184,9 +180,6 @@ void IPCAudioIODevice::run() {
           data->NumChannels, outputBuffer,
           data->NumChannels, data->BufferSize
         );
-//        cout << "output:" << endl;
-//        printBuffer(data);
-//        cout << endl << endl;
 
         //Notify the other process that the buffer is empty
         data->message_in = false;
@@ -205,59 +198,3 @@ void IPCAudioIODevice::run() {
     cout << ex.what() << endl;
   }
 }
-
-//void IPCAudioIODevice::prepareInputData(const vstjs::AudioBlock *buffer,
-//                                        float **destination) {
-//  for (int channel = 0; channel < buffer->numchannels(); ++channel) {
-//    for (int sample = 0; sample < buffer->samplesize(); ++sample) {
-//      destination[channel][sample] = buffer->audiodata(channel * buffer->samplesize() + sample);
-//    }
-//  }
-//}
-
-//
-//void IPCAudioIODevice::prepareOutputData(const vstjs::AudioBlock *buffer,
-//                                         float **destination) {
-//  for (int channel = 0; channel < buffer->numchannels(); ++channel) {
-//    for (int sample = 0; sample < buffer->samplesize(); ++sample) {
-//      destination[channel][sample] = 0;
-//    }
-//  }
-//}
-
-//
-//grpc::Status IPCAudioIODevice::ProcessAudioBlock (grpc::ServerContext* context, const vstjs::AudioBlock* request,
-//                                vstjs::AudioBlock* reply) {
-//
-//  if ( isPlaying() && callback != nullptr) {
-//
-//    // init i/o buffers
-//    float **nextInputBuffer;
-//    nextInputBuffer = new float *[request->numchannels()];
-//    for (int i = 0; i < request->numchannels(); i++) {
-//      nextInputBuffer[i] = new float[request->samplesize()];
-//    }
-//    this->prepareInputData(request, nextInputBuffer);
-//
-//    float **nextOutputBuffer;
-//    nextOutputBuffer = new float *[request->numchannels()];
-//    for (int i = 0; i < request->numchannels(); i++) {
-//      nextOutputBuffer[i] = new float[request->samplesize()];
-//    }
-//    this->prepareOutputData(request, nextOutputBuffer);
-//
-//    // pass i/o data to audio device callback
-//    callback->audioDeviceIOCallback(
-//      const_cast<const float **>(nextInputBuffer),
-//      request->numchannels(), nextOutputBuffer,
-//      request->numchannels(), request->samplesize());
-//
-//    // copy new output data to protobuf object
-//    for (int channel = 0; channel < request->numchannels();
-//         ++channel) {
-//      for (int sample = 0; sample < request->samplesize(); ++sample) {
-//        reply->add_audiodata(nextOutputBuffer[channel][sample]);
-//      }
-//    }
-//  }
-//}

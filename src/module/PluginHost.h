@@ -11,9 +11,9 @@
 //Erase previous shared memory and schedule erasure on exit
 struct shm_remove
 {
-  const char *segmentId;
-  shm_remove(const char *id): segmentId(id) { boost::interprocess::shared_memory_object::remove(segmentId); }
-  ~shm_remove(){ boost::interprocess::shared_memory_object::remove(segmentId); }
+  const char *segmentFile;
+  shm_remove(const char *id): segmentFile(id) { boost::interprocess::shared_memory_object::remove(segmentFile); }
+  ~shm_remove(){ boost::interprocess::shared_memory_object::remove(segmentFile); }
 };
 
 struct process_manager
@@ -21,10 +21,10 @@ struct process_manager
 public:
   ~process_manager() { if (child_) terminate_process(); }
 
-  void open_process(std::string pluginPath, std::string shmemSegmentId)
+  void open_process(std::string pluginPath, std::string shmemFile)
   {
     std::string exec = "/Users/dxr224/Projects/vst-js/cmake-build-debug/vstjs-bin";
-    child_ = boost::process::child(exec, pluginPath, shmemSegmentId);
+    child_ = boost::process::child(exec, pluginPath, shmemFile);
   }
 
   void terminate_process() {
@@ -45,7 +45,7 @@ public:
   static void Stop(const Nan::FunctionCallbackInfo<v8::Value> &info);
   static void ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
 
-  std::string shMemSegmentId;
+  std::string shmemFile;
   std::string pluginPath;
   shm_remove shmemRemover;
   std::unique_ptr<boost::interprocess::shared_memory_object> shm;
@@ -54,7 +54,7 @@ public:
   process_manager processManager;
 
 private:
-  PluginHost(std::string _shmemSegmentId, std::string pluginPath);
+  PluginHost(std::string _shmemFile, std::string pluginPath);
   ~PluginHost();
 
   static Nan::Persistent<v8::Function> constructor;

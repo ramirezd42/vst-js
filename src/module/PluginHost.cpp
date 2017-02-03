@@ -79,14 +79,14 @@ using namespace boost::interprocess;
 
 // END TEMPORARY JUNK
 
-PluginHost::PluginHost(std::string _shmemSegmentId, std::string _pluginPath)
-  : shMemSegmentId(_shmemSegmentId),
+PluginHost::PluginHost(std::string _shmemFile, std::string _pluginPath)
+  : shmemFile(_shmemFile),
     pluginPath(_pluginPath),
-    shmemRemover(_shmemSegmentId.data())
+    shmemRemover(_shmemFile.data())
 
 {
   shm = unique_ptr<shared_memory_object> (new shared_memory_object(create_only               //only create
-    ,shMemSegmentId.data() //name
+    ,shmemFile.data() //name
     ,read_write                //read-write mode
   ));
 
@@ -109,6 +109,16 @@ PluginHost::PluginHost(std::string _shmemSegmentId, std::string _pluginPath)
 PluginHost::~PluginHost(){};
 
 Nan::Persistent<v8::Function> PluginHost::constructor;
+
+v8::Local<v8::Object> PluginHost::NewInstance(v8::Local<v8::Value> arg) {
+  Nan::EscapableHandleScope scope;
+  const unsigned argc = 1;
+  v8::Local<v8::Value> argv[argc] = {arg};
+  v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
+  v8::Local<v8::Object> instance = cons->NewInstance(argc, argv);
+
+  return scope.Escape(instance);
+}
 
 void PluginHost::Init() {
   Nan::HandleScope scope;
@@ -133,11 +143,8 @@ void PluginHost::Init() {
 void PluginHost::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
 
-  // connect socket to requested address
-  std::cout << "Shared Memory ID: " << obj->shMemSegmentId << std::endl;
-  // launch child process, with specified plugin
-  // listening on specified socket address
-  obj->processManager.open_process(obj->pluginPath, obj->shMemSegmentId);
+  // launch child process, with specified plugin and memory file
+  obj->processManager.open_process(obj->pluginPath, obj->shmemFile);
 }
 
 void PluginHost::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
@@ -156,10 +163,6 @@ void PluginHost::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
     Nan::ThrowTypeError("Incorrect Type for Argument 1. Expected String");
     return;
   }
-//
-//  v8::String::Utf8Value param1(info[0]->ToString());
-//  string shmemSegmentId = string(*param1);
-
   v8::String::Utf8Value param1(info[0]->ToString());
   string pluginPath = string(*param1);
 
@@ -201,14 +204,8 @@ void PluginHost::ProcessAudioBlock(
     cout << "Full. Waiting" << endl;
     obj->shmemBuffer.get()->cond_full.wait(lock);
   }
-//  cout << "output:" << endl;
-//  printBuffer(obj->shmemBuffer.get());
-//  cout << endl << endl;
 
   getNextInputBuffer(obj->shmemBuffer.get());
-//  printf("Buffer %d:\n---\n");
-//  cout << "input:" << endl;
-//  printBuffer(obj->shmemBuffer.get());
 
   //Notify to the other process that there is a message
   obj->shmemBuffer.get()->cond_empty.notify_one();
@@ -219,12 +216,3 @@ void PluginHost::ProcessAudioBlock(
   info.GetReturnValue().Set(info[2]);
 }
 
-v8::Local<v8::Object> PluginHost::NewInstance(v8::Local<v8::Value> arg) {
-  Nan::EscapableHandleScope scope;
-  const unsigned argc = 1;
-  v8::Local<v8::Value> argv[argc] = {arg};
-  v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-  v8::Local<v8::Object> instance = cons->NewInstance(argc, argv);
-
-  return scope.Escape(instance);
-}
