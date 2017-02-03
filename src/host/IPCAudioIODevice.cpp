@@ -28,6 +28,14 @@ void prepareInputData(SharedMemoryBuffer *buf, float **destination) {
   }
 }
 
+void copyOutputData( float **data, SharedMemoryBuffer *destination) {
+  for (int channel = 0; channel < destination->NumChannels; ++channel) {
+    for (int sample = 0; sample < destination->BufferSize; ++sample) {
+       destination->buffer[channel][sample]= data[channel][sample];
+    }
+  }
+}
+
 
 IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
                                    const String _shmemFile)
@@ -153,44 +161,43 @@ void IPCAudioIODevice::run() {
     bool end_loop = false;
     do{
       scoped_lock<interprocess_mutex> lock(data->mutex);
-      if(!data->message_in){
+
+      if(!data->message_in) {
         data->cond_empty.wait(lock);
       }
-      else{
-
-        // init input buffer
-        // todo: have a single outputbuffer as a private class member and just re-use that every time
-        float **inputBuffer;
-        inputBuffer = new float *[data->NumChannels];
-        for (int i = 0; i < data->NumChannels; i++) {
-          inputBuffer[i] = new float[data->BufferSize];
-        }
-        prepareInputData(data, inputBuffer);
-
-        // init output buffer
-        // todo: have a single outputbuffer as a private class member and just re-use that every time
-        float **outputBuffer;
-        outputBuffer = new float *[data->NumChannels];
-        for (int i = 0; i < data->NumChannels; i++) {
-          outputBuffer[i] = new float[data->BufferSize];
-        }
-
-        callback->audioDeviceIOCallback(
-          const_cast<const float**>(inputBuffer),
-          data->NumChannels, outputBuffer,
-          data->NumChannels, data->BufferSize
-        );
-
-        //Notify the other process that the buffer is empty
-        data->message_in = false;
-        data->cond_full.notify_one();
-
-        //cleanup output buffer
-        for (int i = 0; i < data->NumChannels; ++i) {
-          delete[] outputBuffer[i];
-        }
-        delete[] outputBuffer;
+      // init input buffer
+      // todo: have a single outputbuffer as a private class member and just re-use that every time
+      float **inputBuffer;
+      inputBuffer = new float *[data->NumChannels];
+      for (int i = 0; i < data->NumChannels; i++) {
+        inputBuffer[i] = new float[data->BufferSize];
       }
+      prepareInputData(data, inputBuffer);
+
+      // init output buffer
+      // todo: have a single outputbuffer as a private class member and just re-use that every time
+      float **outputBuffer;
+      outputBuffer = new float *[data->NumChannels];
+      for (int i = 0; i < data->NumChannels; i++) {
+        outputBuffer[i] = new float[data->BufferSize];
+      }
+
+      callback->audioDeviceIOCallback(
+        const_cast<const float**>(inputBuffer),
+        data->NumChannels, outputBuffer,
+        data->NumChannels, data->BufferSize
+      );
+      copyOutputData(outputBuffer, data);
+
+      //Notify the other process that the buffer is empty
+      data->message_in = false;
+      data->cond_full.notify_one();
+
+      //cleanup output buffer
+      for (int i = 0; i < data->NumChannels; ++i) {
+        delete[] outputBuffer[i];
+      }
+      delete[] outputBuffer;
     }
     while(!end_loop);
   }

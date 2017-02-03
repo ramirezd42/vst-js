@@ -175,6 +175,8 @@ void PluginHost::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
 void PluginHost::ProcessAudioBlock(
     const Nan::FunctionCallbackInfo<v8::Value> &info) {
 
+  PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
+
   if (info.Length() < 3) {
     Nan::ThrowTypeError("Wrong number of arguments. Expected 3 arguments");
     return;
@@ -197,22 +199,42 @@ void PluginHost::ProcessAudioBlock(
     return;
   }
 
-  PluginHost *obj = ObjectWrap::Unwrap<PluginHost>(info.This());
+  scoped_lock<interprocess_mutex> lock(obj->shmemBuffer->mutex);
 
-  scoped_lock<interprocess_mutex> lock(obj->shmemBuffer.get()->mutex);
-  if(obj->shmemBuffer.get()->message_in){
-    cout << "Full. Waiting" << endl;
-    obj->shmemBuffer.get()->cond_full.wait(lock);
+  // copy to buffer
+  Local<Array> a = Local<Array>::Cast(info[2]);
+  for (int channel = 0, size = a->Length(); channel < size; channel++) {
+    Local<Value> element = a->Get(channel);
+    if (!element->IsFloat32Array()) {
+      Nan::ThrowTypeError("Incorrect Type for channel data. Expected Float32Array");
+    }
+    Local<Float32Array> channel_handle = Local<Float32Array>::Cast(element);
+    Nan::TypedArrayContents<float> dest(channel_handle);
+    for (int sample = 0; sample < channel_handle->Length(); sample++) {
+      obj->shmemBuffer->buffer[channel][sample] = (*dest)[sample];
+    }
   }
 
-  getNextInputBuffer(obj->shmemBuffer.get());
+  // wait for child process to write to the buffer
+  obj->shmemBuffer->cond_empty.notify_one();
+  obj->shmemBuffer->message_in = true;
 
-  //Notify to the other process that there is a message
-  obj->shmemBuffer.get()->cond_empty.notify_one();
+  if(obj->shmemBuffer->message_in) {
+    obj->shmemBuffer->cond_full.wait(lock);
+  }
 
-  //Mark message buffer as full
-  obj->shmemBuffer.get()->message_in = true;
 
-  info.GetReturnValue().Set(info[2]);
+  // copy from buffer
+  Local<Array> outputChannels = Array::New(v8::Isolate::GetCurrent(), obj->shmemBuffer->NumChannels);
+  for (int channel = 0; channel < obj->shmemBuffer->NumChannels; ++channel) {
+    Local<Array> outChan = Array::New(v8::Isolate::GetCurrent(), obj->shmemBuffer->NumChannels);
+    for (int sample = 0; sample < obj->shmemBuffer->BufferSize; ++sample) {
+      outChan->Set(sample, Number::New(v8::Isolate::GetCurrent(), obj->shmemBuffer->buffer[channel][sample]));
+    }
+    outputChannels->Set(channel, outChan);
+  }
+
+//  // return result
+  info.GetReturnValue().Set(outputChannels);
 }
 

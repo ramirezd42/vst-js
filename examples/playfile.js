@@ -1,6 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-console */
 
+var diff = require('deep-diff').diff
+
 const AudioContext = require('web-audio-api').AudioContext
 const AudioBuffer = require('web-audio-api').AudioBuffer
 const Speaker = require('speaker')
@@ -42,9 +44,12 @@ scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
 
   // process audio block via pluginHost
   const output = pluginHost.processAudioBlock(numChannels, bufferSize, channels)
-  const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
+  const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate);
   audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
-
+  // audioProcessingEvent.outputBuffer = inputBuffer // eslint-disable-line no-param-reassign
+  var diffy = diff(channels, output)
+  var lol = channels[0].map((s, i) => s - output[0][i])
+  var omg = channels[1].map((s, i) => s - output[1][i])
   const hrend = process.hrtime(hrstart)
   console.info('Execution time (hr): %ds %dms', hrend[0], hrend[1] / 1000000)
 }
@@ -57,15 +62,3 @@ fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
     sourceNode.start(0)
   }, (e) => { throw e })
 })
-
-// pluginHost.on('info', (data) => {
-//   console.log(`stdout: ${data}`)
-// })
-//
-// pluginHost.on('error', (data) => {
-//   console.log(`stderr: ${data}`)
-// })
-//
-// pluginHost.on('close', (code) => {
-//   console.log(`child process exited with code ${code}`)
-// })
