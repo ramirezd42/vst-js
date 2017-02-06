@@ -12,12 +12,6 @@ const path = require('path')
 const bufferSize = 512
 const numChannels = 2
 const pluginPath = '/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3'
-// const hostAddress = '0.0.0.0:50051'
-// const  = require('../index').PluginHost
-//
-// // launch plugin host process
-// const pluginHost = new PluginHost(pluginPath, hostAddress)
-// pluginHost.launchProcess()
 const vstjs = require('../build/Release/vstjs.node')
 const pluginHost = vstjs.launchPlugin(pluginPath)
 pluginHost.start()
@@ -36,6 +30,7 @@ audioContext.outStream = new Speaker({
 sourceNode.connect(scriptNode)
 scriptNode.connect(audioContext.destination)
 
+
 scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
   const hrstart = process.hrtime()
   const inputBuffer = audioProcessingEvent.inputBuffer
@@ -43,15 +38,12 @@ scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
     .map(i => audioProcessingEvent.inputBuffer.getChannelData(i))
 
   // process audio block via pluginHost
-  const output = pluginHost.processAudioBlock(numChannels, bufferSize, channels)
-  const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate);
-  audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
-  // audioProcessingEvent.outputBuffer = inputBuffer // eslint-disable-line no-param-reassign
-  var diffy = diff(channels, output)
-  var lol = channels[0].map((s, i) => s - output[0][i])
-  var omg = channels[1].map((s, i) => s - output[1][i])
+  // const output = pluginHost.processAudioBlock(numChannels, bufferSize, channels)
+  // const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
+  // audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
+  audioProcessingEvent.outputBuffer = inputBuffer // eslint-disable-line no-param-reassign
   const hrend = process.hrtime(hrstart)
-  console.info('Execution time (hr): %ds %dms', hrend[0], hrend[1] / 1000000)
+  console.info("Execution time (hr): %ds %dms", hrend[0], hrend[1]/1000000);
 }
 
 fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
