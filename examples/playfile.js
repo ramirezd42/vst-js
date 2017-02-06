@@ -1,6 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-console */
 
+var diff = require('deep-diff').diff
+
 const AudioContext = require('web-audio-api').AudioContext
 const AudioBuffer = require('web-audio-api').AudioBuffer
 const Speaker = require('speaker')
@@ -10,12 +12,9 @@ const path = require('path')
 const bufferSize = 512
 const numChannels = 2
 const pluginPath = '/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3'
-const hostAddress = '0.0.0.0:50051'
-const PluginHost = require('../index').PluginHost
-
-// launch plugin host process
-const pluginHost = new PluginHost(pluginPath, hostAddress)
-pluginHost.launchProcess()
+const vstjs = require('../build/Release/vstjs.node')
+const pluginHost = vstjs.launchPlugin(pluginPath)
+pluginHost.start()
 
 // setup webaudio stuff
 const audioContext = new AudioContext()
@@ -31,16 +30,20 @@ audioContext.outStream = new Speaker({
 sourceNode.connect(scriptNode)
 scriptNode.connect(audioContext.destination)
 
+
 scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
+  const hrstart = process.hrtime()
   const inputBuffer = audioProcessingEvent.inputBuffer
   const channels = [...Array(numChannels).keys()]
     .map(i => audioProcessingEvent.inputBuffer.getChannelData(i))
 
   // process audio block via pluginHost
-  const output = pluginHost.processAudioBlock(channels)
-
-  const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
-  audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
+  // const output = pluginHost.processAudioBlock(numChannels, bufferSize, channels)
+  // const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
+  // audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
+  audioProcessingEvent.outputBuffer = inputBuffer // eslint-disable-line no-param-reassign
+  const hrend = process.hrtime(hrstart)
+  console.info("Execution time (hr): %ds %dms", hrend[0], hrend[1]/1000000);
 }
 
 fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
@@ -50,16 +53,4 @@ fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
     sourceNode.buffer = audioBuffer
     sourceNode.start(0)
   }, (e) => { throw e })
-})
-
-pluginHost.on('info', (data) => {
-  console.log(`stdout: ${data}`)
-})
-
-pluginHost.on('error', (data) => {
-  console.log(`stderr: ${data}`)
-})
-
-pluginHost.on('close', (code) => {
-  console.log(`child process exited with code ${code}`)
 })
