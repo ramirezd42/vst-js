@@ -8,77 +8,6 @@ using namespace std;
 using namespace boost::process;
 using namespace boost::interprocess;
 
-// THIS JUNK IS TEMPORARY TO TEST WITH WHITE NOISE DATA
-//
-//void getNextInputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels, int numSamples, float * inputChannelData) {
-//  for (int channel = 0; channel < numInputChannels; ++channel) {
-//    for (int sample= 0; sample < numSamples * numInputChannels; ++sample) {
-//      buffer.add_inputdata(inputChannelData[channel+sample]);
-//    }
-//  }
-//}
-
-//void getNextInputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels,
-//                            int numSamples, Random &randomGen) {
-//  for (int i = 0; i < numInputChannels; ++i) {
-//    for (int i = 0; i < numSamples * numInputChannels; ++i) {
-//      buffer.add_inputdata(randomGen.nextFloat() * 0.25f - 0.125f);
-//    }
-//  }
-//}
-
-//
-//void getNextOutputAudioBlock(vstjs::IOBuffer &buffer, int numInputChannels,
-//                             int numSamples) {
-//  for (int i = 0; i < numInputChannels; ++i) {
-//    for (int i = 0; i < numSamples * numInputChannels; ++i) {
-//      buffer.add_outputdata(0);
-//    }
-//  }
-//}
-//
-//void copyNextOutputAudioBlock(const float* data, float* output, int numInputChannels, int numSamples) {
-//  for (int channel = 0; channel < numInputChannels; ++channel) {
-//    for (int sample= 0; sample < numSamples * numInputChannels; ++sample) {
-//      output[channel+sample] = data[channel+sample];
-//    }
-//  }
-//}
-//
-//juce::String bufferToString(vstjs::IOBuffer &buffer) {
-//  juce::String returnStr = "";
-//  for (int channel = 0; channel < buffer.numinputchannels(); ++channel) {
-//    for (int sample = 0; sample < buffer.samplesize(); ++ sample) {
-//      returnStr += "Channel " + channel;
-//      returnStr += ", Sample " + sample;
-//      returnStr += std::to_string(buffer.inputdata().Get(buffer.samplesize()*channel + sample));
-//      returnStr += "\n";
-////      std::cout << "Channel " << channel << ", Sample " << sample << ": " << buffer.inputdata().Get(buffer.samplesize()*channel + sample) << std::endl;
-//    }
-//  }
-//  return returnStr;
-//}
-
- void getNextInputBuffer(SharedMemoryBuffer* buffer) {
-   for(int channel = 0; channel < buffer->NumChannels; ++channel) {
-     for(int sample =0; sample < buffer->BufferSize; ++sample) {
-       buffer->buffer[channel][sample] = rand() / (float)RAND_MAX;
-     }
-   }
- }
-
- void printBuffer(SharedMemoryBuffer* buffer) {
-   for(int channel = 0; channel < buffer->NumChannels; ++channel) {
-     printf("Channel %d: ", channel);
-     for(int sample =0; sample < buffer->BufferSize; ++sample) {
-       printf("%f ", buffer->buffer[channel][sample]);
-     }
-     cout << "\n";
-   }
- }
-
-// END TEMPORARY JUNK
-
 PluginHost::PluginHost(std::string _shmemFile, std::string _pluginPath)
   : shmemFile(_shmemFile),
     pluginPath(_pluginPath),
@@ -201,18 +130,22 @@ void PluginHost::ProcessAudioBlock(
 
   scoped_lock<interprocess_mutex> lock(obj->shmemBuffer->mutex);
 
+
   // copy to buffer
+  // todo: THIS IS WHERE THE PROBLEM IS. THE BUFFER IS NOT BEING ASSIGNED THE RIGHT FLOAT VALUE?
   Local<Array> a = Local<Array>::Cast(info[2]);
   for (int channel = 0, size = a->Length(); channel < size; channel++) {
     Local<Value> element = a->Get(channel);
     if (!element->IsFloat32Array()) {
       Nan::ThrowTypeError("Incorrect Type for channel data. Expected Float32Array");
     }
-    Local<Float32Array> channel_handle = Local<Float32Array>::Cast(element);
+    Local<TypedArray> channel_handle = Local<TypedArray>::Cast(element);
     Nan::TypedArrayContents<float> dest(channel_handle);
+    float* samples = *dest;
     for (int sample = 0; sample < channel_handle->Length(); sample++) {
-      obj->shmemBuffer->buffer[channel][sample] = (*dest)[sample];
+      obj->shmemBuffer->buffer[channel][sample] = samples[sample];
     }
+    int foo = 0;
   }
 
   // wait for child process to write to the buffer
@@ -227,13 +160,12 @@ void PluginHost::ProcessAudioBlock(
   // copy from buffer
   Local<Array> outputChannels = Array::New(v8::Isolate::GetCurrent(), obj->shmemBuffer->NumChannels);
   for (int channel = 0; channel < obj->shmemBuffer->NumChannels; ++channel) {
-    Local<Array> outChan = Array::New(v8::Isolate::GetCurrent(), obj->shmemBuffer->NumChannels);
+    Local<Float32Array> outChan = Float32Array::New(ArrayBuffer::New(v8::Isolate::GetCurrent(), sizeof(float) * obj->shmemBuffer->BufferSize), 0, obj->shmemBuffer->BufferSize);
     for (int sample = 0; sample < obj->shmemBuffer->BufferSize; ++sample) {
       outChan->Set(sample, Number::New(v8::Isolate::GetCurrent(), obj->shmemBuffer->buffer[channel][sample]));
     }
     outputChannels->Set(channel, outChan);
   }
-
 //  // return result
   info.GetReturnValue().Set(outputChannels);
 }
