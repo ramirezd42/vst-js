@@ -5,7 +5,6 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/process.hpp>
-#include <nan.h>
 #include "SharedMemoryBuffer.h"
 
 //Erase previous shared memory and schedule erasure on exit
@@ -14,6 +13,12 @@ struct shm_remove
   const char *segmentFile;
   shm_remove(const char *id): segmentFile(id) { boost::interprocess::shared_memory_object::remove(segmentFile); }
   ~shm_remove(){ boost::interprocess::shared_memory_object::remove(segmentFile); }
+};
+
+struct shm_truncate
+{
+  const boost::interprocess::shared_memory_object shm;
+  shm_truncate():shm(){}
 };
 
 struct process_manager
@@ -37,28 +42,21 @@ private:
   boost::optional<boost::process::child> child_;
 };
 
-class PluginHost : public Nan::ObjectWrap {
+class PluginHost {
 public:
-  static void Init();
-  static v8::Local<v8::Object> NewInstance(v8::Local<v8::Value> arg);
-  static void Start(const Nan::FunctionCallbackInfo<v8::Value> &info);
-  static void Stop(const Nan::FunctionCallbackInfo<v8::Value> &info);
-  static void ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
+  PluginHost(std::string _shmemFile, std::string pluginPath);
+  ~PluginHost();
+  void Start();
+  void Stop();
+  void ProcessAudioBlock(int numChannels, int numSamples, float** inputBuffer);
 
   std::string shmemFile;
   std::string pluginPath;
   shm_remove shmemRemover;
-  std::unique_ptr<boost::interprocess::shared_memory_object> shm;
+  boost::interprocess::shared_memory_object shm;
   std::unique_ptr<boost::interprocess::mapped_region> region;
-  std::unique_ptr<SharedMemoryBuffer> shmemBuffer;
+  SharedMemoryBuffer* shmemBuffer;
   process_manager processManager;
-
-private:
-  PluginHost(std::string _shmemFile, std::string pluginPath);
-  ~PluginHost();
-
-  static Nan::Persistent<v8::Function> constructor;
-  static void New(const Nan::FunctionCallbackInfo<v8::Value> &info);
 };
 
 #endif
