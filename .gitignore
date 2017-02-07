@@ -23,3 +23,5 @@ compile_commands.json
 CTestTestfile.cmake
 cmake-build-debug/
 cmake-build-release/
+boost-*
+boost_system_jam-prefix

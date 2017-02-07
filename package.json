@@ -11,6 +11,8 @@
   "license": "ISC",
   "gypfile": true,
   "dependencies": {
+    "boost-lib": "^0.11.3",
+    "cmake-js": "^3.4.0",
     "nan": "^2.5.1"
   },
   "devDependencies": {
