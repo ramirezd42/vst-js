@@ -11,8 +11,7 @@
   "license": "ISC",
   "gypfile": true,
   "dependencies": {
-    "deasync": "^0.1.9",
-    "grpc": "^1.0.1"
+    "nan": "^2.5.1"
   },
   "devDependencies": {
     "eslint": "^3.14.1",
