@@ -26,6 +26,7 @@ file(GLOB BIN_SOURCE_FILES "src/host/*.cpp" "src/host/*.h" "src/host/JuceLibrary
 file(GLOB MODULE_SOURCE_FILES "src/module/*.cpp" "src/module/*.h")
 
 add_executable(${BIN_NAME} ${BIN_SOURCE_FILES})
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build )
 add_library(${PROJECT_NAME} SHARED ${MODULE_SOURCE_FILES})
 
 # Gives our library file a .node extension without any "lib" prefix
@@ -34,11 +35,14 @@ link_directories()
 
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
-include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/shared)
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/shared
+    ${Boost_INCLUDE_DIR}
+)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_JS_INC}
-    ${Boost_INCLUDE_DIR}
 )
 target_include_directories(${BIN_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/include/JUCE/modules
