@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#include "../../shared/JuceLibraryCode/JuceHeader.h"
+#include "JuceLibraryCode/JuceHeader.h"
 #include "IPCAudioIODevice.h"
 
 //==============================================================================

@@ -5,7 +5,7 @@
 #ifndef VST_JS_HOST_IPCAUDIOIODEVICE_H
 #define VST_JS_HOST_IPCAUDIOIODEVICE_H
 
-#include "../../shared/JuceLibraryCode/JuceHeader.h"
+#include "JuceLibraryCode/JuceHeader.h"
 #include "SharedMemoryBuffer.h"
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
