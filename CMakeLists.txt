@@ -9,11 +9,22 @@ set (BIN_NAME vstjs-bin)
 # Name of the project (will be the name of the plugin)
 project(vstjs)
 
+# If VST3 sdk path is provided via env variable, use that
+if(NOT DEFINED $ENV{VST3_SDK_PATH})
+    set(VST3_SDK_PATH "~/SDKS/VST3 SDK")
+else()
+    set(VST3_SDK_PATH $ENV{VST3_SDK_PATH})
+endif()
+
+# Grab boost dependency via boost-lib npm module
+FIND_BOOST_PACKAGE ( Boost 1.60 COMPONENTS system REQUIRED)
+
 # Build a shared library named after the project from the files in `src/`
 file(GLOB BIN_SOURCE_FILES "src/host/*.cpp" "src/host/*.h" "src/host/JuceLibraryCode/*.mm")
 file(GLOB MODULE_SOURCE_FILES "src/module/*.cpp" "src/module/*.h")
 
 add_executable(${BIN_NAME} ${BIN_SOURCE_FILES})
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build )
 add_library(${PROJECT_NAME} SHARED ${MODULE_SOURCE_FILES})
 
 # Gives our library file a .node extension without any "lib" prefix
@@ -22,12 +33,18 @@ link_directories()
 
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
-include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/shared)
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/shared
+    ${Boost_INCLUDE_DIR}
+)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_JS_INC})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_JS_INC}
+)
 target_include_directories(${BIN_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/include/JUCE/modules
-    ${CMAKE_SOURCE_DIR}/include/VST3
+    ${VST3_SDK_PATH}
 )
 
 # Essential library files to link to a node addon
@@ -47,9 +64,9 @@ SET(JUCE_PLATFORM_SPECIFIC_LIBRARIES
     "-lobjc")
 
 target_link_libraries(
-        ${PROJECT_NAME}
-        ${CMAKE_JS_LIB}
-        /usr/local/Cellar/boost/1.63.0/lib/libboost_system.a
+    ${PROJECT_NAME}
+    ${CMAKE_JS_LIB}
+    ${Boost_LIBRARIES}
 )
 
 target_link_libraries(

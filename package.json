@@ -2,15 +2,14 @@
   "name": "vst-js",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "install": "cmake-js compile",
-    "protobuf": "protoc -I=shared/proto --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin --grpc_out=shared/proto/build --cpp_out=shared/proto/build shared/proto/iobuffer.proto"
+    "install": "cmake-js compile"
   },
   "author": "Dave Ramirez <ramirezd42@gmail.com>",
   "license": "ISC",
-  "gypfile": true,
   "dependencies": {
+    "boost-lib": "^0.11.3",
+    "cmake-js": "^3.4.0",
     "nan": "^2.5.1"
   },
   "devDependencies": {
