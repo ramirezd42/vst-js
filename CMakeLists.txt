@@ -17,9 +17,7 @@ else()
 endif()
 
 # Grab boost dependency via boost-lib npm module
-SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/boost-lib/cmake")
-include(BoostLib)
-require_boost_libs(">= 1.6.0" system)
+FIND_BOOST_PACKAGE ( Boost 1.60 COMPONENTS system REQUIRED)
 
 # Build a shared library named after the project from the files in `src/`
 file(GLOB BIN_SOURCE_FILES "src/host/*.cpp" "src/host/*.h" "src/host/JuceLibraryCode/*.mm")
