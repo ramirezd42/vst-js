@@ -1,4 +1,7 @@
-# vst.js
+<p align="center">
+  <img width="200" src="https://raw.githubusercontent.com/ramirezd42/vst-js/master/logo.png">
+</p>
+
 ## What Is It?
 **vst.js** is a native NodeJS addon that can be used to launch VST3 plugins (including GUI interface) in a separate process.
  
