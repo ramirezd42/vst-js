@@ -17,7 +17,7 @@ else()
 endif()
 
 # Grab boost dependency via boost-lib npm module
-FIND_BOOST_PACKAGE ( Boost 1.60 COMPONENTS system REQUIRED)
+find_package ( Boost 1.60 COMPONENTS system REQUIRED)
 
 # Build a shared library named after the project from the files in `src/`
 file(GLOB BIN_SOURCE_FILES "src/host/*.cpp" "src/host/*.h" "src/host/JuceLibraryCode/*.mm")
