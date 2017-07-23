@@ -43,7 +43,9 @@ IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
       Thread(deviceName),
       shmemFile(_shmemFile),
       deviceIsOpen(false),
-      deviceIsPlaying(false) {
+      deviceIsPlaying(false),
+      inputBuffer(IPCAudioIOBuffer(SharedMemoryBuffer::NumChannels, SharedMemoryBuffer::BufferSize)),
+      outputBuffer(IPCAudioIOBuffer(SharedMemoryBuffer::NumChannels, SharedMemoryBuffer::BufferSize)) {
   inputChannelNames = new StringArray();
   inputChannelNames->add("Input 1");
   inputChannelNames->add("Input 2");
@@ -121,11 +123,11 @@ int IPCAudioIODevice::getCurrentBitDepth() {
 }
 
 BigInteger IPCAudioIODevice::getActiveOutputChannels() const {
-  return 11;
+  return BigInteger(3);
 }
 
 BigInteger IPCAudioIODevice::getActiveInputChannels() const {
-  return 11;
+  return BigInteger(3);
 }
 
 int IPCAudioIODevice::getOutputLatencyInSamples() {
@@ -166,38 +168,19 @@ void IPCAudioIODevice::run() {
         data->cond_empty.wait(lock);
       }
       // init input buffer
-      // todo: have a single outputbuffer as a private class member and just re-use that every time
-      float **inputBuffer;
-      inputBuffer = new float *[data->NumChannels];
-      for (int i = 0; i < data->NumChannels; i++) {
-        inputBuffer[i] = new float[data->BufferSize];
-      }
-      prepareInputData(data, inputBuffer);
+      prepareInputData(data, inputBuffer.data);
 
       // init output buffer
-      // todo: have a single outputbuffer as a private class member and just re-use that every time
-      float **outputBuffer;
-      outputBuffer = new float *[data->NumChannels];
-      for (int i = 0; i < data->NumChannels; i++) {
-        outputBuffer[i] = new float[data->BufferSize];
-      }
-
       callback->audioDeviceIOCallback(
-        const_cast<const float**>(inputBuffer),
-        data->NumChannels, outputBuffer,
+        const_cast<const float**>(inputBuffer.data),
+        data->NumChannels, outputBuffer.data,
         data->NumChannels, data->BufferSize
       );
-      copyOutputData(outputBuffer, data);
+      copyOutputData(outputBuffer.data, data);
 
       //Notify the other process that the buffer is empty
       data->message_in = false;
       data->cond_full.notify_one();
-
-      //cleanup output buffer
-      for (int i = 0; i < data->NumChannels; ++i) {
-        delete[] outputBuffer[i];
-      }
-      delete[] outputBuffer;
     }
     while(!end_loop);
   }

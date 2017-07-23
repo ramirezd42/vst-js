@@ -5,6 +5,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/process.hpp>
+#include <iostream>
 #include "SharedMemoryBuffer.h"
 
 //Erase previous shared memory and schedule erasure on exit
@@ -26,9 +27,9 @@ struct process_manager
 public:
   ~process_manager() { if (child_) terminate_process(); }
 
-  void open_process(std::string pluginPath, std::string shmemFile)
+  void open_process(std::string modulePath, std::string pluginPath, std::string shmemFile)
   {
-    std::string exec = "/Users/dxr224/Projects/vst-js/cmake-build-debug/vstjs-bin";
+    std::string exec = modulePath + "/vstjs-bin";
     child_ = boost::process::child(exec, pluginPath, shmemFile);
   }
 
@@ -46,7 +47,7 @@ class PluginHost {
 public:
   PluginHost(std::string _shmemFile, std::string pluginPath);
   ~PluginHost();
-  void Start();
+  void Start(std::string moduleDirectory);
   void Stop();
   void ProcessAudioBlock(int numChannels, int numSamples, float** inputBuffer);
 

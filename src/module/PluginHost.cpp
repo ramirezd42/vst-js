@@ -31,9 +31,9 @@ PluginHost::PluginHost(std::string _shmemFile, std::string _pluginPath)
 };
 PluginHost::~PluginHost(){};
 
-void PluginHost::Start() {
+void PluginHost::Start(std::string moduleDirectory) {
   // launch child process, with specified plugin and memory file
-  processManager.open_process(pluginPath, shmemFile);
+  processManager.open_process(moduleDirectory, pluginPath, shmemFile);
 }
 
 void PluginHost::Stop() {

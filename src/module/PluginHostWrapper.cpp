@@ -1,8 +1,10 @@
 #include "PluginHostWrapper.h"
-#include <nan.h>
 
 using namespace std;
 using namespace v8;
+
+IPCAudioIOBuffer PluginHostWrapper::tempBuffer(SharedMemoryBuffer::NumChannels, SharedMemoryBuffer::BufferSize);
+std::string PluginHostWrapper::moduleDirectory = "";
 
 PluginHostWrapper::PluginHostWrapper(string _shmemFile, string _pluginPath): host(_shmemFile, _pluginPath) {}
 Nan::Persistent<v8::Function> PluginHostWrapper::constructor;
@@ -17,8 +19,10 @@ v8::Local<v8::Object> PluginHostWrapper::NewInstance(v8::Local<v8::Value> arg) {
   return scope.Escape(instance);
 }
 
-void PluginHostWrapper::Init() {
+void PluginHostWrapper::Init(std::string _moduleDirectory) {
   Nan::HandleScope scope;
+
+  moduleDirectory = _moduleDirectory;
 
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PluginHost").ToLocalChecked());
@@ -39,7 +43,7 @@ void PluginHostWrapper::Init() {
 
 void PluginHostWrapper::Start(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   PluginHostWrapper *obj = ObjectWrap::Unwrap<PluginHostWrapper>(info.This());
-  obj->host.Start();
+  obj->host.Start(moduleDirectory);
 }
 
 void PluginHostWrapper::Stop(const Nan::FunctionCallbackInfo<v8::Value> &info) {
@@ -68,7 +72,6 @@ void PluginHostWrapper::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
 
 void PluginHostWrapper::ProcessAudioBlock(
   const Nan::FunctionCallbackInfo<v8::Value> &info) {
-
   PluginHostWrapper *obj = ObjectWrap::Unwrap<PluginHostWrapper>(info.This());
 
   if (info.Length() < 3) {
@@ -95,7 +98,6 @@ void PluginHostWrapper::ProcessAudioBlock(
 
   // copy to buffer
   Local<Array> a = Local<Array>::Cast(info[2]);
-  float** buffer = new float*[numChannels];
   for (int channel = 0;  channel < numChannels; channel++) {
     Local<Value> element = a->Get(channel);
     if (!element->IsFloat32Array()) {
@@ -103,21 +105,9 @@ void PluginHostWrapper::ProcessAudioBlock(
     }
     Local<TypedArray> channel_handle = Local<TypedArray>::Cast(element);
     Nan::TypedArrayContents<float> dest(channel_handle);
-    buffer[channel] = *dest;
+    tempBuffer.data[channel] = *dest;
   }
 
-  obj->host.ProcessAudioBlock(numChannels, numSamples, buffer);
-
-  // copy from buffer
-  Local<Array> outputChannels = Array::New(v8::Isolate::GetCurrent(), numChannels);
-  for (int channel = 0; channel < numChannels; ++channel) {
-    Local<Float32Array> outChan = Float32Array::New(ArrayBuffer::New(v8::Isolate::GetCurrent(), sizeof(float) * numSamples), 0, numSamples);
-    for (int sample = 0; sample < numSamples; ++sample) {
-      outChan->Set(sample, Number::New(v8::Isolate::GetCurrent(), buffer[channel][sample]));
-    }
-    outputChannels->Set(channel, outChan);
-  }
-  // return result
-  info.GetReturnValue().Set(outputChannels);
+  obj->host.ProcessAudioBlock(numChannels, numSamples, tempBuffer.data);
 }
 

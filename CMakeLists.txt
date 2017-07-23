@@ -4,6 +4,8 @@ message("CMAKE_JS_INC:" ${CMAKE_JS_INC})
 
 set (CMAKE_CXX_STANDARD 11)
 set (PROJECT_NAME vstjs)
+set( EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build/Release")
+set( RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build/Release")
 set (BIN_NAME vstjs-bin)
 
 # Name of the project (will be the name of the plugin)
@@ -11,7 +13,7 @@ project(vstjs)
 
 # If VST3 sdk path is provided via env variable, use that
 if(NOT DEFINED $ENV{VST3_SDK_PATH})
-    set(VST3_SDK_PATH "~/SDKS/VST3 SDK")
+    set(VST3_SDK_PATH "~/SDKS/VST3")
 else()
     set(VST3_SDK_PATH $ENV{VST3_SDK_PATH})
 endif()
@@ -33,6 +35,7 @@ link_directories()
 
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/shared

@@ -36,30 +36,32 @@ You can also specify the installed location of the VST3 SDK by setting a the `VS
 Once all the above dependencies have been satisfied you can install via npm:
 
 ```
-> npm install vst-js
+> npm install vstjs
 ```
 ---
 ## Usage Examples
 The example below will play back an audio file via [node-web-audio-api](https://github.com/sebpiq/node-web-audio-api), and manipulate the audio via a VST3 plugin
+
 ```javascript
-const AudioContext = require('web-audio-api').AudioContext
-const AudioBuffer = require('web-audio-api').AudioBuffer
+const { AudioContext } = require('web-audio-api')
 const Speaker = require('speaker')
 const fs = require('fs')
 const path = require('path')
-const vstjs = require('vst-js')
-
-const pluginPath = '/Library/Audio/Plug-Ins/VST3/PrimeEQ.vst3'
-const pluginHost = vstjs.launchPlugin(pluginPath)
+const vstjs = require('vstjs')
 
 const bufferSize = 512
 const numChannels = 2
+const pluginPath = process.argv[2]
+const filePath = process.argv[3]
+
+const pluginHost = vstjs.launchPlugin(pluginPath)
 pluginHost.start()
 
 // setup webaudio stuff
 const audioContext = new AudioContext()
 const sourceNode = audioContext.createBufferSource()
 const scriptNode = audioContext.createScriptProcessor(bufferSize, numChannels, numChannels)
+
 
 audioContext.outStream = new Speaker({
   channels: audioContext.format.numberOfChannels,
@@ -77,12 +79,11 @@ scriptNode.onaudioprocess = function onaudioprocess(audioProcessingEvent) {
     .map(i => audioProcessingEvent.inputBuffer.getChannelData(i))
 
   // process audio block via pluginHost
-  const output = pluginHost.processAudioBlock(numChannels, bufferSize, channels)
-  const outputBuffer = AudioBuffer.fromArray(output, inputBuffer.sampleRate)
-  audioProcessingEvent.outputBuffer = outputBuffer // eslint-disable-line no-param-reassign
+  pluginHost.processAudioBlock(numChannels, bufferSize, channels)
+  audioProcessingEvent.outputBuffer = inputBuffer
 }
 
-fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
+fs.readFile(filePath, (err, fileBuf) => {
   console.log('reading file..')
   if (err) throw err
   audioContext.decodeAudioData(fileBuf, (audioBuffer) => {
@@ -90,5 +91,4 @@ fs.readFile(path.resolve(__dirname, './test.wav'), (err, fileBuf) => {
     sourceNode.start(0)
   }, (e) => { throw e })
 })
-
 ```

@@ -1,24 +1,27 @@
 {
-  "name": "vst-js",
-  "version": "0.0.0",
-  "description": "",
-  "scripts": {
-    "install": "cmake-js compile"
+  "author": {
+    "name": "Dave Ramirez",
+    "email": "ramirezd42@gmail.com"
   },
-  "author": "Dave Ramirez <ramirezd42@gmail.com>",
-  "license": "ISC",
   "dependencies": {
     "boost-lib": "^0.11.3",
-    "cmake-js": "^3.4.0",
-    "nan": "^2.5.1"
+    "cmake-js": "3.4.1",
+    "nan": "2.5.1",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "eslint": "^3.14.1",
     "eslint-config-airbnb-base": "^11.0.1",
     "eslint-plugin-import": "^2.2.0",
-    "node-core-audio": "^0.5.1",
     "speaker": "^0.3.0",
     "wav": "^1.0.1",
     "web-audio-api": "^0.2.2"
-  }
+  },
+  "license": "ISC",
+  "main": "index.js",
+  "name": "vstjs",
+  "scripts": {
+    "install": "cmake-js compile"
+  },
+  "version": "0.0.2"
 }

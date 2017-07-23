@@ -112,6 +112,9 @@ public:
       outputProcessor = new AudioProcessorGraph::AudioGraphIOProcessor(
           AudioProcessorGraph::AudioGraphIOProcessor::audioOutputNode);
 
+        deviceManager.addAudioCallback(&graphPlayer);
+        graphPlayer.setProcessor(&graph);
+
       // Add all nodes to graph
       inputNode = graph.addNode(inputProcessor);
       pluginNode = graph.addNode(instance);
@@ -127,8 +130,6 @@ public:
       editor = instance->createEditor();
       this->setContentOwned(editor, true);
 
-      graphPlayer.setProcessor(&graph);
-      deviceManager.addAudioCallback(&graphPlayer);
     }
 
     void closeButtonPressed() override {

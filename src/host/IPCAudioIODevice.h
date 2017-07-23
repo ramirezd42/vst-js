@@ -7,6 +7,7 @@
 
 #include "JuceLibraryCode/JuceHeader.h"
 #include "SharedMemoryBuffer.h"
+#include "IPCAudioIOBuffer.h"
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
@@ -52,6 +53,8 @@ private:
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
+  IPCAudioIOBuffer inputBuffer;
+  IPCAudioIOBuffer outputBuffer;
 };
 
 class IPCAudioIODeviceType : public AudioIODeviceType {
@@ -79,6 +82,7 @@ public:
 private:
   ScopedPointer<StringArray> deviceNames;
   const String socketAddress;
+
 };
 
 #endif // VST_JS_HOST_IPCAUDIOIODEVICE_H
