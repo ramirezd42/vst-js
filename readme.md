@@ -27,7 +27,7 @@ vst.js makes use of the popular [Boost C++ Framework](http://boost.org). It expe
 > brew install boost
 ```
 
-### Acquire the Steinberg VST3 SDK
+### Acquire the Steinberg VST3 SDK (3.6.7+)
 Due to licensing concerns I am currently not bundling the VST3 SDK along with this project. You will need to download the SDK from [Steinbergs's Website](http://www.steinberg.net/en/company/developers.html) and place it at `~/SDKs/VST3` 
 
 You can also specify the installed location of the VST3 SDK by setting a the `VST3_SDK_PATH` environment variable prior to installation
