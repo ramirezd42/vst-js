@@ -9,7 +9,7 @@
 ## WARNING:
 This library is in an extremely experimental state. Large portions of functionally have yet to be implemented and it is currently only buildable for OSX devices, although since everything is built with crossplatform libraries, building for other operating systems shouldn't be too difficult.
 
-Additionally, I'm learning C++ by developing this project. If you have any criticisms on my approach or code quality I'd love to hear them.
+Additionally, If you have any criticisms on my approach or code quality I'd love to hear them.
 
 ---
 
