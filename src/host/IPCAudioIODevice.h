@@ -11,7 +11,7 @@
 
 class IPCAudioIODevice : public AudioIODevice, private Thread {
 public:
-  IPCAudioIODevice(const String &deviceName, const String _shmemFile);
+  IPCAudioIODevice(const String &deviceName, const String inputShmemFile, const String outputShmemFile);
   ~IPCAudioIODevice() {}
   StringArray getOutputChannelNames() override { return *inputChannelNames; };
   StringArray getInputChannelNames() override { return *outputChannelNames; };
@@ -49,7 +49,8 @@ private:
   ScopedPointer<Array<int>> bitDepths;
   ScopedPointer<AudioIODeviceCallback> callback;
 
-  const String shmemFile;
+  const String inputShmemFile;
+  const String outputShmemFile;
 
   bool deviceIsOpen;
   bool deviceIsPlaying;
@@ -59,8 +60,8 @@ private:
 
 class IPCAudioIODeviceType : public AudioIODeviceType {
 public:
-  IPCAudioIODeviceType(const String _socketAddress)
-      : socketAddress(_socketAddress), AudioIODeviceType("IPC") {
+  IPCAudioIODeviceType(const String _inputShmemFile, const String _outputShmemFile)
+      : inputShmemFile(_inputShmemFile), outputShmemFile(_outputShmemFile), AudioIODeviceType("IPC") {
     deviceNames = new StringArray();
     deviceNames->add("default");
   }
@@ -76,12 +77,13 @@ public:
   bool hasSeparateInputsAndOutputs() const override { return false; }
   AudioIODevice *createDevice(const String &outputDeviceName,
                               const String &inputDeviceName) override {
-    return new IPCAudioIODevice(deviceNames->getReference(0), socketAddress);
+    return new IPCAudioIODevice(deviceNames->getReference(0), inputShmemFile, outputShmemFile);
   }
 
 private:
   ScopedPointer<StringArray> deviceNames;
-  const String socketAddress;
+  const String inputShmemFile;
+  const String outputShmemFile;
 
 };
 

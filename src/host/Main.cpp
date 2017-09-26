@@ -33,8 +33,9 @@ public:
     // code..
     StringArray params = this->getCommandLineParameterArray();
     String pluginPath = params[0];
-    String socketAddress = params[1];
-    mainWindow = new MainWindow("Plugin Host", pluginPath, socketAddress);
+    String inputShmemFile = params[1];
+    String outputShmemFile = params[2];
+    mainWindow = new MainWindow("Plugin Host", pluginPath, inputShmemFile, outputShmemFile);
   }
 
   void shutdown() override {
@@ -64,7 +65,7 @@ public:
   */
   class MainWindow : public DocumentWindow {
   public:
-    MainWindow(String name, String pluginPath, String socketAddress)
+    MainWindow(String name, String pluginPath, String inputShmemFile, String outputShmemFile)
         : DocumentWindow(name, Colours::lightgrey, DocumentWindow::allButtons) {
       formatManager.addDefaultFormats();
       setUsingNativeTitleBar(true);
@@ -90,7 +91,7 @@ public:
       ScopedPointer<XmlElement> savedAudioState =
           appProperties->getUserSettings()->getXmlValue("audioDeviceState");
 
-      IPCAudioIODeviceType *ipcType = new IPCAudioIODeviceType(socketAddress);
+      IPCAudioIODeviceType *ipcType = new IPCAudioIODeviceType(inputShmemFile, outputShmemFile);
       deviceManager.addAudioDeviceType(ipcType);
       if (deviceManager.getCurrentAudioDeviceType() != "IPC") {
         deviceManager.setCurrentAudioDeviceType("IPC", true);

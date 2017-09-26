@@ -6,7 +6,7 @@ using namespace v8;
 IPCAudioIOBuffer PluginHostWrapper::tempBuffer(SharedMemoryBuffer::NumChannels, SharedMemoryBuffer::BufferSize);
 std::string PluginHostWrapper::moduleDirectory = "";
 
-PluginHostWrapper::PluginHostWrapper(string _shmemFile, string _pluginPath): host(_shmemFile, _pluginPath) {}
+PluginHostWrapper::PluginHostWrapper(string _inputShmemFile, string _outputShmemFile, string _pluginPath): host(_inputShmemFile, _outputShmemFile, _pluginPath) {}
 Nan::Persistent<v8::Function> PluginHostWrapper::constructor;
 
 v8::Local<v8::Object> PluginHostWrapper::NewInstance(v8::Local<v8::Value> arg) {
@@ -64,7 +64,7 @@ void PluginHostWrapper::New(const Nan::FunctionCallbackInfo<v8::Value> &info) {
   v8::String::Utf8Value param1(info[0]->ToString());
   string pluginPath = string(*param1);
 
-  PluginHostWrapper *obj = new PluginHostWrapper("test123", pluginPath);
+  PluginHostWrapper *obj = new PluginHostWrapper("INPUT_AUDIO_QUEUE", "OUTPUT_AUDIO_QUEUE", pluginPath);
 
   obj->Wrap(info.This());
   info.GetReturnValue().Set(info.This());

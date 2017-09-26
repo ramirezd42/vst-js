@@ -14,7 +14,7 @@ public:
   static void ProcessAudioBlock(const Nan::FunctionCallbackInfo<v8::Value> &info);
 
 private:
-  PluginHostWrapper(std::string _shmemFile, std::string pluginPath);
+  PluginHostWrapper(std::string _inputShmemFile, std::string _outputShmemFile, std::string pluginPath);
   static Nan::Persistent<v8::Function> constructor;
   static void New(const Nan::FunctionCallbackInfo<v8::Value> &info);
   PluginHost host;

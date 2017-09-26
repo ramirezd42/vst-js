@@ -9,8 +9,9 @@
 
 using namespace boost::interprocess;
 using namespace std;
+namespace bip = boost::interprocess;
 
-void printBuffer(SharedMemoryBuffer* buffer) {
+void printBuffer(LockFreeSharedMemoryBuffer* buffer) {
   for (int channel = 0; channel < buffer->NumChannels; ++channel) {
     printf("Channel %d:", channel);
     for (int sample = 0; sample < buffer->BufferSize; ++sample) {
@@ -20,28 +21,27 @@ void printBuffer(SharedMemoryBuffer* buffer) {
   }
 }
 
-void prepareInputData(SharedMemoryBuffer *buf, float **destination) {
-  for (int channel = 0; channel < buf->NumChannels; ++channel) {
-    for (int sample = 0; sample < buf->BufferSize; ++sample) {
-      destination[channel][sample] = buf->buffer[channel][sample];
+void prepareInputData(LockFreeSharedMemoryBuffer& buf, float **destination) {
+  for (int channel = 0; channel < buf.NumChannels; ++channel) {
+    for (int sample = 0; sample < buf.BufferSize; ++sample) {
+      destination[channel][sample] = buf.buffer[channel][sample];
     }
   }
 }
 
-void copyOutputData( float **data, SharedMemoryBuffer *destination) {
-  for (int channel = 0; channel < destination->NumChannels; ++channel) {
-    for (int sample = 0; sample < destination->BufferSize; ++sample) {
-       destination->buffer[channel][sample]= data[channel][sample];
+void copyOutputData( float **data, LockFreeSharedMemoryBuffer& destination) {
+  for (int channel = 0; channel < destination.NumChannels; ++channel) {
+    for (int sample = 0; sample < destination.BufferSize; ++sample) {
+       destination.buffer[channel][sample] = data[channel][sample];
     }
   }
 }
 
-
-IPCAudioIODevice::IPCAudioIODevice(const String &deviceName,
-                                   const String _shmemFile)
+IPCAudioIODevice::IPCAudioIODevice(const String &deviceName, const String _inputShmemFile, const String _outputShmemFile)
     : AudioIODevice(deviceName, "IPC"),
       Thread(deviceName),
-      shmemFile(_shmemFile),
+      inputShmemFile(_inputShmemFile),
+      outputShmemFile(_outputShmemFile),
       deviceIsOpen(false),
       deviceIsPlaying(false),
       inputBuffer(IPCAudioIOBuffer(SharedMemoryBuffer::NumChannels, SharedMemoryBuffer::BufferSize)),
@@ -140,47 +140,56 @@ int IPCAudioIODevice::getInputLatencyInSamples() {
 
 void IPCAudioIODevice::run() {
 
-  //Create a shared memory object.
-  shared_memory_object shm
+  //Create shared memory objects.
+  shared_memory_object inputShmObj
     (open_only                    //only create
-      , shmemFile.toRawUTF8()
+      , inputShmemFile.toRawUTF8()
       ,read_write                   //read-write mode
     );
+
+  shared_memory_object outputShmObj
+    (open_only                    //only create
+      , outputShmemFile.toRawUTF8()
+      ,read_write                   //read-write mode
+    );
+
   try{
     //Map the whole shared memory in this process
-    mapped_region region
-      (shm                       //What to map
+    mapped_region inputRegion
+      (inputShmObj                       //What to map
         ,read_write //Map it as read-write
       );
 
+    mapped_region outputRegion
+      (outputShmObj                       //What to map
+        ,read_write //Map it as read-write
+      );
     //Get the address of the mapped region
-    void * addr       = region.get_address();
+    void * inputAddr  = inputRegion.get_address();
+    void * outputAddr = outputRegion.get_address();
 
     //Obtain a pointer to the shared structure
-    SharedMemoryBuffer * data = static_cast<SharedMemoryBuffer*>(addr);
+    ipc_audio_buffer* inputQueue = static_cast<ipc_audio_buffer*>(inputAddr);
+    ipc_audio_buffer* outputQueue = static_cast<ipc_audio_buffer*>(outputAddr);
+    LockFreeSharedMemoryBuffer tempBuffer;
 
     //Print messages until the other process marks the end
     bool end_loop = false;
     do{
-      scoped_lock<interprocess_mutex> lock(data->mutex);
-
-      if(!data->message_in) {
-        data->cond_empty.wait(lock);
-      }
       // init input buffer
-      prepareInputData(data, inputBuffer.data);
+      while(!inputQueue->pop(tempBuffer)){}
+
+      prepareInputData(tempBuffer, inputBuffer.data);
 
       // init output buffer
       callback->audioDeviceIOCallback(
         const_cast<const float**>(inputBuffer.data),
-        data->NumChannels, outputBuffer.data,
-        data->NumChannels, data->BufferSize
+        LockFreeSharedMemoryBuffer::NumChannels, outputBuffer.data,
+        LockFreeSharedMemoryBuffer::NumChannels, LockFreeSharedMemoryBuffer::BufferSize
       );
-      copyOutputData(outputBuffer.data, data);
 
-      //Notify the other process that the buffer is empty
-      data->message_in = false;
-      data->cond_full.notify_one();
+      copyOutputData(outputBuffer.data, tempBuffer);
+      outputQueue->push(tempBuffer);
     }
     while(!end_loop);
   }
