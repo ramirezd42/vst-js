@@ -7,7 +7,8 @@
     "boost-lib": "^0.11.3",
     "cmake-js": "3.4.1",
     "nan": "2.5.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "eslint": "^3.14.1",
@@ -21,7 +22,10 @@
   "main": "index.js",
   "name": "vstjs",
   "scripts": {
-    "install": "cmake-js compile"
+    "install": "cmake-js compile",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
-  "version": "0.0.4"
+  "version": "0.0.4",
+  "snyk": true
 }
