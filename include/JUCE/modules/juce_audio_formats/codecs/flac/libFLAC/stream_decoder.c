@@ -1734,6 +1734,7 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 		if (obj->num_comments > 0) {
 			if (0 == (obj->comments = (FLAC__StreamMetadata_VorbisComment_Entry*) safe_malloc_mul_2op_p(obj->num_comments, /*times*/sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+				obj->num_comments = 0;
 				return false;
 			}
 			for (i = 0; i < obj->num_comments; i++) {
@@ -3393,3 +3394,4 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 }
 
 #endif
+
